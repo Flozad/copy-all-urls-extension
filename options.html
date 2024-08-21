@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Options | URL Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="jquery-3.7.1.min.js"></script>
+    <script src="options.js"></script>
+</head>
+<body class="bg-gray-100">
+
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-gray-200 p-6 rounded-lg shadow-lg mb-8">
+        <div class="flex items-center">
+            <img src="icon.png" alt="Icon" class="w-16 h-16 mr-4">
+            <div>
+                <h1 class="text-3xl font-semibold">URL Manager <small class="text-lg">for Chrome</small></h1>
+                <p class="text-sm">Options and Settings</p>
+                <span class="inline-block bg-black text-white px-2 py-1 rounded mt-2" id="version_label">Version</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center text-sm text-gray-500 mb-4">
+      This Chrome extension is based on the amazing Umbrella CopyAllURLs. It has saved us many hours by copying all of those URLs. I want to contribute to it by recreating it to meet the new Google Chrome marketplace standards. I also want to make it Private and Open Source so that people can continue to use it.
+  </div>
+
+    <div class="alert alert-info hidden bg-blue-100 border border-blue-400 text-blue-700 p-4 rounded mb-6" id="recently-updated"></div>
+
+    <h2 class="text-2xl font-bold mb-4">Settings</h2>
+    <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+        <h3 class="text-xl font-semibold mb-4">Format</h3>
+        <div id="formats" class="space-y-2 mb-6">
+            <label class="flex items-center">
+                <input type="radio" name="format" id="format_text" value="text" class="mr-2"> Text
+            </label>
+            <label class="flex items-center">
+                <input type="radio" name="format" id="format_html" value="html" class="mr-2"> HTML
+            </label>
+            <label class="flex items-center">
+                <input type="radio" name="format" id="format_json" value="json" class="mr-2"> JSON
+            </label>
+            <label class="flex items-center">
+                <input type="radio" name="format" id="format_custom" value="custom" class="mr-2"> Custom
+            </label>
+        </div>
+
+        <div id="html_advanced" class="hidden bg-gray-100 p-4 rounded-lg mb-6">
+            <h4 class="text-lg font-medium mb-2">Anchor</h4>
+            <div id="anchor_options">
+                <label class="flex items-center mb-2">
+                    <input type="radio" name="anchor" id="anchor_url" value="url" class="mr-2"> Page URL
+                </label>
+                <label class="flex items-center">
+                    <input type="radio" name="anchor" id="anchor_title" value="title" class="mr-2"> Page Title
+                </label>
+            </div>
+        </div>
+
+        <div id="custom_advanced" class="hidden bg-gray-100 p-4 rounded-lg mb-6">
+            <h4 class="text-lg font-medium mb-2">Custom Format</h4>
+            <textarea id="custom_template" class="w-full p-2 border border-gray-300 rounded" rows="5"></textarea>
+            <p class="text-sm mt-2">Example: <code class="bg-gray-200 p-1 rounded">&lt;a href=&quot;$url&quot;&gt;$url&lt;/a&gt; - $title&lt;br/&gt;</code></p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-4">Miscellaneous</h3>
+        <div id="misc" class="space-y-4">
+            <label class="flex items-center">
+                <input type="checkbox" id="smart_paste" class="mr-2"> Smart Paste
+            </label>
+            <p class="text-gray-600 text-sm">Enable Smart Paste to extract URLs from raw text when you paste content into the extension. This feature attempts to find and process URLs from any text you copy, making it easier to work with large blocks of text that contain URLs.</p>
+
+            <label class="flex items-center">
+                <input type="checkbox" id="selected_tabs_only" class="mr-2"> Selected Tabs Only
+            </label>
+            <p class="text-gray-600 text-sm">When enabled, this option will copy URLs only from the tabs you have highlighted or selected in Chrome. This is useful when you need to copy URLs from specific tabs rather than all open tabs.</p>
+
+            <label class="flex items-center">
+                <input type="checkbox" id="include_all_windows" class="mr-2"> Include All Windows
+            </label>
+            <p class="text-gray-600 text-sm">Enable this setting to copy URLs from all Chrome windows, not just the current one. This is helpful if you work with multiple Chrome windows and want to manage URLs across all of them.</p>
+
+            <label class="flex items-center">
+                <span class="mr-2">MIME Type:</span>
+                <select id="mime_type" class="p-2 border border-gray-300 rounded">
+                    <option value="plaintext">Plain Text</option>
+                    <option value="html">HTML</option>
+                </select>
+            </label>
+            <p class="text-gray-600 text-sm">Choose whether to copy content as Plain Text or HTML. HTML will allow URLs to be copied as clickable links, which is useful for pasting into email clients or word processors.</p>
+        </div>
+
+        <div class="mt-6">
+            <button id="reset_settings" class="bg-red-500 text-white px-4 py-2 rounded">Reset Settings</button>
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold mb-4">Step-by-Step Tutorials</h2>
+    <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+        <h3 class="text-xl font-semibold mb-4">Setting Up Keyboard Shortcuts</h3>
+        <ol class="list-decimal list-inside space-y-2 text-gray-700">
+            <li>Open the <a href="chrome://extensions/shortcuts" class="text-blue-500 underline">Chrome Extensions Shortcuts Page</a>.</li>
+            <li>Find the "URL Manager" extension in the list.</li>
+            <li>Click on the box next to "Copy URLs" and "Paste URLs" to set your preferred keyboard shortcuts.</li>
+            <li>Press the desired keys to set up the shortcuts (e.g., Ctrl + Shift + C for Copy and Ctrl + Shift + V for Paste).</li>
+            <li>Close the tab, and you can now use these shortcuts to quickly copy or paste URLs from Chrome.</li>
+        </ol>
+
+        <h3 class="text-xl font-semibold mb-4">Using the Extension to Copy URLs</h3>
+        <ol class="list-decimal list-inside space-y-2 text-gray-700">
+            <li>Click the "URL Manager" icon in the Chrome toolbar.</li>
+            <li>Select "Copy URLs" to copy the URLs from the open tabs according to your settings (e.g., selected tabs only or all windows).</li>
+            <li>If you have configured "Smart Paste," the extension will automatically extract and copy URLs from the text content you paste.</li>
+            <li>The copied URLs will be saved to your clipboard, and you can paste them wherever you need.</li>
+        </ol>
+
+        <h3 class="text-xl font-semibold mb-4">Advanced Settings</h3>
+        <p class="text-gray-700">Explore the settings page to customize the extension according to your needs. You can adjust formats, set up custom templates, and more. Each setting is explained in detail in the Miscellaneous section above.</p>
+    </div>
+
+    <footer class="mt-8 text-center text-gray-600">
+        <p>&copy; <span id="year_footer"></span> Built by <a href="https://github.com/Flozad" class="text-blue-500 underline">Lozard</a>. All rights reserved.</p>
+    </footer>
+</div>
+
+</body>
+</html>

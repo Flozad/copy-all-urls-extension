@@ -1,0 +1,32 @@
+{
+  "name": "Umbrella - Copy All URLs V3",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "description": "Copy URLs from all tabs or selected tabs and paste to open them in new tabs.",
+  "icons": {
+    "128": "icon.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png",
+    "default_title": "Copy URLs to clipboard"
+  },
+  "permissions": [
+    "tabs",
+    "clipboardRead",
+    "clipboardWrite",
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"]
+    }
+  ],
+  "options_page": "options.html"
+}

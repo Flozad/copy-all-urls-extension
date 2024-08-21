@@ -1,0 +1,14 @@
+# Ignore node_modules if you use npm
+node_modules/
+
+# Ignore build output
+dist/
+build/
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore Chrome extension packaging files
+*.zip
+*.crx
