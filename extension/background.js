@@ -1,3 +1,48 @@
+try {
+  chrome.runtime.onInstalled.addListener(() => {
+    chrome.storage.sync.set({
+      format: 'text',
+      mime: 'text/plain',
+      selectedTabsOnly: false,
+      includeAllWindows: false,
+      customTemplate: '',
+      defaultBehavior: 'copy'
+    }, () => {
+      console.log('Default settings have been set.');
+    });
+
+    chrome.contextMenus.create({
+      id: 'copyUrls',
+      title: 'Copy URLs',
+      contexts: ['all']
+    });
+
+    chrome.contextMenus.create({
+      id: 'pasteUrls',
+      title: 'Paste URLs',
+      contexts: ['all']
+    });
+
+    console.log('Context menus have been created.');
+  });
+} catch (error) {
+  console.error('Service worker registration failed:', error);
+}
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === 'copyUrls') {
+    chrome.windows.getCurrent(function(win) {
+      if (chrome.runtime.lastError || !win || !win.id) {
+        console.error("Error getting current window or invalid window object:", chrome.runtime.lastError || "Window object is undefined");
+        return;
+      }
+      Action.copy({ window: win });
+    });
+  } else if (info.menuItemId === 'pasteUrls') {
+    Action.paste();
+  }
+});
+
 const CopyTo = {
   html: function(tabs) {
     return tabs.map(tab => `<a href="${tab.url}">${tab.title}</a>`).join('<br>');
@@ -13,7 +58,7 @@ const CopyTo = {
   }
 };
 
-Action = {
+const Action = {
   copy: function(opt) {
     chrome.storage.sync.get(['format', 'mime', 'selectedTabsOnly', 'includeAllWindows', 'customTemplate'], function(items) {
       const format = items['format'] || 'text';
@@ -70,7 +115,7 @@ Action = {
           args: [outputText, extended_mime],
         });
 
-        chrome.runtime.sendMessage({ type: "copy", copied_url: filteredTabs.length });
+        chrome.runtime.sendMessage({ type: "copy", copied_url: filteredTabs.length, content: outputText });
       });
     });
   },
@@ -131,6 +176,10 @@ chrome.action.onClicked.addListener(function(tab) {
   chrome.storage.sync.get(['defaultBehavior'], function(items) {
     if (items.defaultBehavior === 'copy') {
       chrome.windows.getCurrent(function(win) {
+        if (chrome.runtime.lastError || !win || !win.id) {
+          console.error("Error getting current window or invalid window object:", chrome.runtime.lastError || "Window object is undefined");
+          return;
+        }
         Action.copy({ window: win });
       });
     } else if (items.defaultBehavior === 'paste') {
