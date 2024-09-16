@@ -165,7 +165,11 @@ const Action = {
           return;
         }
 
-        urlList.forEach(url => chrome.tabs.create({ url }));
+        chrome.storage.sync.get(['customTemplate'], function(items) {
+          const customTemplate = items['customTemplate'] || '$url';
+          const processedUrls = urlList.map(url => customTemplate.replace(/\$url/g, url));
+          processedUrls.forEach(url => chrome.tabs.create({ url }));
+        });
       });
     });
   }
