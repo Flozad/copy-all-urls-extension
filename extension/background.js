@@ -29,11 +29,11 @@ try {
   console.error('Service worker registration failed:', error);
 }
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener((info) => {
   if (info.menuItemId === 'copyUrls') {
-    chrome.windows.getCurrent(function(win) {
-      if (chrome.runtime.lastError || !win || !win.id) {
-        console.error("Error getting current window or invalid window object:", chrome.runtime.lastError || "Window object is undefined");
+    chrome.windows.getCurrent(function (win) {
+      if (!win || !win.id) {
+        console.error("Error: No active window or invalid window ID.");
         return;
       }
       Action.copy({ window: win });
@@ -42,7 +42,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     Action.paste();
   }
 });
-
 function getCurrentDate() {
   const date = new Date();
   const year = date.getFullYear();
@@ -51,39 +50,41 @@ function getCurrentDate() {
   return `${year}-${month}-${day}`;
 }
 
-function processCustomTemplate(template) {
-  return template.replace('$date', getCurrentDate());
-}
-
 const CopyTo = {
-  html: function(tabs) {
+  html: function (tabs) {
     return tabs.map(tab => `<a href="${tab.url}">${tab.title}</a>`).join('<br>');
   },
-  json: function(tabs) {
+  json: function (tabs) {
     return JSON.stringify(tabs.map(tab => ({ title: tab.title, url: tab.url })), null, 2);
   },
-  text: function(tabs) {
+  text: function (tabs) {
     return tabs.map(tab => `${tab.title}: ${tab.url}`).join('\n');
   },
-  custom: function(tabs, template) {
-    const processedTemplate = processCustomTemplate(template);
-    return tabs.map(tab => processedTemplate.replace(/\$url/g, tab.url).replace(/\$title/g, tab.title)).join('\n');
+  custom: function (tabs, template) {
+    const currentDate = getCurrentDate();
+
+    return tabs.map(tab => {
+      let output = template.replace(/\$url/g, tab.url).replace(/\$title/g, tab.title);
+      output = output.replace(/\$date/g, currentDate);
+      return output;
+    }).join('\n');
   }
 };
 
+
 const Action = {
-  copy: function(opt) {
-    chrome.storage.sync.get(['format', 'mime', 'selectedTabsOnly', 'includeAllWindows', 'customTemplate'], function(items) {
+  copy: function (opt) {
+    chrome.storage.sync.get(['format', 'mime', 'selectedTabsOnly', 'includeAllWindows', 'customTemplate'], function (items) {
       const format = items['format'] || 'text';
-      const extended_mime = items['mime'] === 'html';
+      const extendedMime = items['mime'] === 'html';
       const selectedTabsOnly = items['selectedTabsOnly'] === true;
       const includeAllWindows = items['includeAllWindows'] === true;
       const customTemplate = items['customTemplate'] || '';
 
-      let queryOptions = includeAllWindows ? {} : { windowId: opt.window.id };
+      const queryOptions = includeAllWindows ? {} : { windowId: opt.window.id };
 
-      chrome.tabs.query(queryOptions, function(tabs) {
-        let filteredTabs = selectedTabsOnly ? tabs.filter(tab => tab.highlighted) : tabs;
+      chrome.tabs.query(queryOptions, function (tabs) {
+        const filteredTabs = selectedTabsOnly ? tabs.filter(tab => tab.highlighted) : tabs;
         let outputText;
 
         switch (format) {
@@ -103,13 +104,13 @@ const Action = {
 
         const activeTab = tabs.find(tab => tab.active);
         if (!activeTab) {
-          console.error("No active tab found.");
+          console.error("Error: No active tab found.");
           return;
         }
 
         chrome.scripting.executeScript({
           target: { tabId: activeTab.id },
-          func: (text, extended_mime) => {
+          func: (text, extendedMime) => {
             const textarea = document.createElement("textarea");
             document.body.appendChild(textarea);
             textarea.value = text;
@@ -117,15 +118,15 @@ const Action = {
             document.execCommand("copy");
             document.body.removeChild(textarea);
 
-            if (extended_mime) {
-              document.oncopy = function(e) {
+            if (extendedMime) {
+              document.oncopy = function (e) {
                 e.preventDefault();
                 e.clipboardData.setData("text/html", text);
                 e.clipboardData.setData("text/plain", text);
               };
             }
           },
-          args: [outputText, extended_mime],
+          args: [outputText, extendedMime],
         });
 
         chrome.runtime.sendMessage({ type: "copy", copied_url: filteredTabs.length, content: outputText });
@@ -133,8 +134,8 @@ const Action = {
     });
   },
 
-  paste: function() {
-    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+  paste: function () {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (!tabs || tabs.length === 0) {
         console.error("No active tab found.");
         return;
@@ -158,28 +159,47 @@ const Action = {
         }
 
         const clipboardString = results[0].result;
-        const urlList = clipboardString.match(/(https?:\/\/[^\s]+)/g) || [];
 
-        if (urlList.length === 0) {
-          chrome.runtime.sendMessage({ type: "paste", errorMsg: "No URL found in the clipboard" });
-          return;
-        }
-
-        chrome.storage.sync.get(['customTemplate'], function(items) {
+        chrome.storage.sync.get(['format', 'customTemplate'], function (items) {
+          const format = items['format'] || 'text';
           const customTemplate = items['customTemplate'] || '$url';
-          const processedUrls = urlList.map(url => customTemplate.replace(/\$url/g, url));
-          processedUrls.forEach(url => chrome.tabs.create({ url }));
+
+          let urlList = [];
+
+          if (format === 'custom') {
+            // Extract URLs from HTML-like custom templates
+            const urlPattern = /href=["'](https?:\/\/[^\s"']+)["']/g;
+            let match;
+            while ((match = urlPattern.exec(clipboardString)) !== null) {
+              urlList.push(match[1]);
+            }
+          } else {
+            const urlPattern = /(https?:\/\/[^\s"']+)/g;
+            urlList = clipboardString.match(urlPattern) || [];
+            urlList = urlList.map(url => url.trim().replace(/^["']|["']$/g, ''));
+          }
+
+          if (urlList.length === 0) {
+            chrome.runtime.sendMessage({ type: "paste", errorMsg: "No URL found in the clipboard" });
+            return;
+          }
+
+          // Process and open the URLs in new tabs
+          urlList.forEach(url => {
+            if (url.startsWith('http') || url.startsWith('https')) {
+              chrome.tabs.create({ url });
+            }
+          });
         });
       });
     });
   }
 };
-
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request) {
   if (request.type === "copy") {
-    chrome.windows.getCurrent(function(win) {
-      if (chrome.runtime.lastError || !win || !win.id) {
-        console.error("Error getting current window or invalid window object:", chrome.runtime.lastError || "Window object is undefined");
+    chrome.windows.getCurrent(function (win) {
+      if (!win || !win.id) {
+        console.error("Error: No active window or invalid window ID.");
         return;
       }
       Action.copy({ window: win });
@@ -189,12 +209,12 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   }
 });
 
-chrome.action.onClicked.addListener(function(tab) {
-  chrome.storage.sync.get(['defaultBehavior'], function(items) {
+chrome.action.onClicked.addListener(function () {
+  chrome.storage.sync.get(['defaultBehavior'], function (items) {
     if (items.defaultBehavior === 'copy') {
-      chrome.windows.getCurrent(function(win) {
-        if (chrome.runtime.lastError || !win || !win.id) {
-          console.error("Error getting current window or invalid window object:", chrome.runtime.lastError || "Window object is undefined");
+      chrome.windows.getCurrent(function (win) {
+        if (!win || !win.id) {
+          console.error("Error: No active window or invalid window ID.");
           return;
         }
         Action.copy({ window: win });
