@@ -74,4 +74,16 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('html_advanced').style.display = format === 'html' ? 'block' : 'none';
       document.getElementById('custom_advanced').style.display = format === 'custom' ? 'block' : 'none';
   }
+
+  function getCurrentDate() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+  }
+
+  function processCustomTemplate(template) {
+      return template.replace('$date', getCurrentDate());
+  }
 });

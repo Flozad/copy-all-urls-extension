@@ -43,6 +43,18 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
+function getCurrentDate() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function processCustomTemplate(template) {
+  return template.replace('$date', getCurrentDate());
+}
+
 const CopyTo = {
   html: function(tabs) {
     return tabs.map(tab => `<a href="${tab.url}">${tab.title}</a>`).join('<br>');
@@ -54,7 +66,8 @@ const CopyTo = {
     return tabs.map(tab => `${tab.title}: ${tab.url}`).join('\n');
   },
   custom: function(tabs, template) {
-    return tabs.map(tab => template.replace(/\$url/g, tab.url).replace(/\$title/g, tab.title)).join('\n');
+    const processedTemplate = processCustomTemplate(template);
+    return tabs.map(tab => processedTemplate.replace(/\$url/g, tab.url).replace(/\$title/g, tab.title)).join('\n');
   }
 };
 
