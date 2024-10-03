@@ -23,7 +23,6 @@ try {
       contexts: ['all']
     });
 
-    console.log('Context menus have been created.');
   });
 } catch (error) {
   console.error('Service worker registration failed:', error);
@@ -134,63 +133,39 @@ const Action = {
     });
   },
 
-  paste: function () {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      if (!tabs || tabs.length === 0) {
-        console.error("No active tab found.");
+  paste: function (content) {
+    if (!content) {
+      console.error('No content provided for paste function');
+      return;
+    }
+
+    chrome.storage.sync.get(['format', 'customTemplate'], function (items) {
+      const format = items['format'] || 'text';
+      const customTemplate = items['customTemplate'] || '$url';
+
+      let urlList = [];
+
+      if (format === 'custom') {
+        const urlPattern = /href=["'](https?:\/\/[^\s"']+)["']/g;
+        let match;
+        while ((match = urlPattern.exec(content)) !== null) {
+          urlList.push(match[1]);
+        }
+      } else {
+        const urlPattern = /(https?:\/\/[^\s"']+)/g;
+        urlList = content.match(urlPattern) || [];
+        urlList = urlList.map(url => url.trim().replace(/^["']|["']$/g, ''));
+      }
+
+      if (urlList.length === 0) {
+        chrome.runtime.sendMessage({ type: "paste", errorMsg: "No URL found in the provided content" });
         return;
       }
 
-      chrome.scripting.executeScript({
-        target: { tabId: tabs[0].id },
-        func: () => {
-          const textarea = document.createElement("textarea");
-          document.body.appendChild(textarea);
-          textarea.select();
-          document.execCommand("paste");
-          const clipboardContent = textarea.value;
-          document.body.removeChild(textarea);
-          return clipboardContent;
+      urlList.forEach(url => {
+        if (url.startsWith('http') || url.startsWith('https')) {
+          chrome.tabs.create({ url });
         }
-      }, (results) => {
-        if (!results || results.length === 0) {
-          console.error("Failed to retrieve clipboard content.");
-          return;
-        }
-
-        const clipboardString = results[0].result;
-
-        chrome.storage.sync.get(['format', 'customTemplate'], function (items) {
-          const format = items['format'] || 'text';
-          const customTemplate = items['customTemplate'] || '$url';
-
-          let urlList = [];
-
-          if (format === 'custom') {
-            // Extract URLs from HTML-like custom templates
-            const urlPattern = /href=["'](https?:\/\/[^\s"']+)["']/g;
-            let match;
-            while ((match = urlPattern.exec(clipboardString)) !== null) {
-              urlList.push(match[1]);
-            }
-          } else {
-            const urlPattern = /(https?:\/\/[^\s"']+)/g;
-            urlList = clipboardString.match(urlPattern) || [];
-            urlList = urlList.map(url => url.trim().replace(/^["']|["']$/g, ''));
-          }
-
-          if (urlList.length === 0) {
-            chrome.runtime.sendMessage({ type: "paste", errorMsg: "No URL found in the clipboard" });
-            return;
-          }
-
-          // Process and open the URLs in new tabs
-          urlList.forEach(url => {
-            if (url.startsWith('http') || url.startsWith('https')) {
-              chrome.tabs.create({ url });
-            }
-          });
-        });
       });
     });
   }

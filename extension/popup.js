@@ -4,7 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   document.getElementById('actionPaste').addEventListener('click', function() {
-    chrome.runtime.sendMessage({ type: 'paste' });
+    const textareaContent = document.getElementById('copiedContent').value;
+    chrome.runtime.sendMessage({ type: 'paste', content: textareaContent }, function(response) {
+    });
   });
 
   document.getElementById('actionOption').addEventListener('click', function() {

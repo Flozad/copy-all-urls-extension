@@ -8,6 +8,4 @@ chrome.storage.sync.get({
   defaultBehavior: 'menu',
   mimeType: 'plaintext',
 }, function(settings) {
-  console.log("Loaded settings: ", settings);
-
 });
