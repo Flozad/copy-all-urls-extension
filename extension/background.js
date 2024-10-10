@@ -134,14 +134,15 @@ const Action = {
   },
 
   paste: function (content) {
-    if (!content) {
-      console.error('No content provided for paste function');
-      return;
-    }
-
     chrome.storage.sync.get(['format', 'customTemplate'], function (items) {
       const format = items['format'] || 'text';
       const customTemplate = items['customTemplate'] || '$url';
+
+      if (!content) {
+        console.error('No content provided for paste function');
+        chrome.runtime.sendMessage({ type: "paste", errorMsg: "No content provided for paste function" });
+        return;
+      }
 
       let urlList = [];
 
@@ -167,9 +168,13 @@ const Action = {
           chrome.tabs.create({ url });
         }
       });
+
+      chrome.runtime.sendMessage({ type: "paste", success: true, urlCount: urlList.length });
     });
   }
 };
+
+// Update the message listener to pass the content
 chrome.runtime.onMessage.addListener(function (request) {
   if (request.type === "copy") {
     chrome.windows.getCurrent(function (win) {
@@ -180,7 +185,8 @@ chrome.runtime.onMessage.addListener(function (request) {
       Action.copy({ window: win });
     });
   } else if (request.type === "paste") {
-    Action.paste();
+    // Ensure the content is passed from the popup or wherever it's stored
+    Action.paste(request.content);
   }
 });
 
