@@ -30,17 +30,16 @@ try {
 
 chrome.contextMenus.onClicked.addListener((info) => {
   if (info.menuItemId === 'copyUrls') {
-    chrome.windows.getCurrent(function (win) {
-      if (!win || !win.id) {
-        console.error("Error: No active window or invalid window ID.");
-        return;
-      }
-      Action.copy({ window: win });
-    });
+    Action.copy();
   } else if (info.menuItemId === 'pasteUrls') {
-    Action.paste();
+    navigator.clipboard.readText().then(function(text) {
+      Action.paste(text);
+    }).catch(function(err) {
+      console.error('Failed to read clipboard contents: ', err);
+    });
   }
 });
+
 function getCurrentDate() {
   const date = new Date();
   const year = date.getFullYear();
@@ -70,20 +69,19 @@ const CopyTo = {
   }
 };
 
-
 const Action = {
-  copy: function (opt) {
+  copy: function () {
     chrome.storage.sync.get(['format', 'mime', 'selectedTabsOnly', 'includeAllWindows', 'customTemplate'], function (items) {
       const format = items['format'] || 'text';
-      const extendedMime = items['mime'] === 'html';
       const selectedTabsOnly = items['selectedTabsOnly'] === true;
       const includeAllWindows = items['includeAllWindows'] === true;
       const customTemplate = items['customTemplate'] || '';
 
-      const queryOptions = includeAllWindows ? {} : { windowId: opt.window.id };
+      const queryOptions = includeAllWindows ? {} : { currentWindow: true };
 
       chrome.tabs.query(queryOptions, function (tabs) {
         const filteredTabs = selectedTabsOnly ? tabs.filter(tab => tab.highlighted) : tabs;
+
         let outputText;
 
         switch (format) {
@@ -101,33 +99,6 @@ const Action = {
             break;
         }
 
-        const activeTab = tabs.find(tab => tab.active);
-        if (!activeTab) {
-          console.error("Error: No active tab found.");
-          return;
-        }
-
-        chrome.scripting.executeScript({
-          target: { tabId: activeTab.id },
-          func: (text, extendedMime) => {
-            const textarea = document.createElement("textarea");
-            document.body.appendChild(textarea);
-            textarea.value = text;
-            textarea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textarea);
-
-            if (extendedMime) {
-              document.oncopy = function (e) {
-                e.preventDefault();
-                e.clipboardData.setData("text/html", text);
-                e.clipboardData.setData("text/plain", text);
-              };
-            }
-          },
-          args: [outputText, extendedMime],
-        });
-
         chrome.runtime.sendMessage({ type: "copy", copied_url: filteredTabs.length, content: outputText });
       });
     });
@@ -136,7 +107,6 @@ const Action = {
   paste: function (content) {
     chrome.storage.sync.get(['format', 'customTemplate'], function (items) {
       const format = items['format'] || 'text';
-      const customTemplate = items['customTemplate'] || '$url';
 
       if (!content) {
         console.error('No content provided for paste function');
@@ -174,18 +144,10 @@ const Action = {
   }
 };
 
-// Update the message listener to pass the content
 chrome.runtime.onMessage.addListener(function (request) {
   if (request.type === "copy") {
-    chrome.windows.getCurrent(function (win) {
-      if (!win || !win.id) {
-        console.error("Error: No active window or invalid window ID.");
-        return;
-      }
-      Action.copy({ window: win });
-    });
+    Action.copy();
   } else if (request.type === "paste") {
-    // Ensure the content is passed from the popup or wherever it's stored
     Action.paste(request.content);
   }
 });
@@ -193,15 +155,13 @@ chrome.runtime.onMessage.addListener(function (request) {
 chrome.action.onClicked.addListener(function () {
   chrome.storage.sync.get(['defaultBehavior'], function (items) {
     if (items.defaultBehavior === 'copy') {
-      chrome.windows.getCurrent(function (win) {
-        if (!win || !win.id) {
-          console.error("Error: No active window or invalid window ID.");
-          return;
-        }
-        Action.copy({ window: win });
-      });
+      Action.copy();
     } else if (items.defaultBehavior === 'paste') {
-      Action.paste();
+      navigator.clipboard.readText().then(function(text) {
+        Action.paste(text);
+      }).catch(function(err) {
+        console.error('Failed to read clipboard contents: ', err);
+      });
     } else {
       chrome.runtime.openOptionsPage();
     }
