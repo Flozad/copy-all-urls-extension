@@ -6,7 +6,8 @@ try {
       selectedTabsOnly: false,
       includeAllWindows: false,
       customTemplate: '',
-      defaultBehavior: 'copy'
+      defaultBehavior: 'copy',
+      smartPaste: true // Ensure smartPaste has a default value
     }, () => {
       console.log('Default settings have been set.');
     });
@@ -105,8 +106,9 @@ const Action = {
   },
 
   paste: function (content) {
-    chrome.storage.sync.get(['format', 'customTemplate'], function (items) {
+    chrome.storage.sync.get(['format', 'customTemplate', 'smartPaste'], function (items) {
       const format = items['format'] || 'text';
+      const smartPaste = items['smartPaste'] === true;
 
       if (!content) {
         console.error('No content provided for paste function');
@@ -116,16 +118,14 @@ const Action = {
 
       let urlList = [];
 
-      if (format === 'custom') {
-        const urlPattern = /href=["'](https?:\/\/[^\s"']+)["']/g;
-        let match;
-        while ((match = urlPattern.exec(content)) !== null) {
-          urlList.push(match[1]);
-        }
-      } else {
-        const urlPattern = /(https?:\/\/[^\s"']+)/g;
+      if (smartPaste) {
+        // Extract URLs using regex
+        const urlPattern = /([a-zA-Z]+:\/\/[^\s"']+)/g;
         urlList = content.match(urlPattern) || [];
         urlList = urlList.map(url => url.trim().replace(/^["']|["']$/g, ''));
+      } else {
+        // Treat each line as a separate URL
+        urlList = content.split('\n').map(url => url.trim()).filter(url => url.length > 0);
       }
 
       if (urlList.length === 0) {
@@ -134,9 +134,7 @@ const Action = {
       }
 
       urlList.forEach(url => {
-        if (url.startsWith('http') || url.startsWith('https')) {
-          chrome.tabs.create({ url });
-        }
+        chrome.tabs.create({ url });
       });
 
       chrome.runtime.sendMessage({ type: "paste", success: true, urlCount: urlList.length });

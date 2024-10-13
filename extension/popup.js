@@ -21,12 +21,26 @@ document.addEventListener('DOMContentLoaded', function() {
     chrome.runtime.openOptionsPage();
   });
 
+  // Restore the last selected paste source
+  chrome.storage.local.get(['pasteSource'], function(result) {
+    const pasteSource = result.pasteSource || 'clipboard';
+    document.querySelector(`input[name="pasteSource"][value="${pasteSource}"]`).checked = true;
+  });
+
+  // Save paste source selection
+  const pasteSourceRadios = document.querySelectorAll('input[name="pasteSource"]');
+  pasteSourceRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      chrome.storage.local.set({ pasteSource: this.value });
+    });
+  });
+
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.type === "copy") {
       document.getElementById('copiedContent').value = request.content;
       navigator.clipboard.writeText(request.content).then(function() {
         console.log('Copied to clipboard successfully!');
-        document.getElementById('message').textContent = 'URLs copied to clipboard!';
+        document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
         setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
       }, function(err) {
         console.error('Could not copy text: ', err);
