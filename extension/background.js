@@ -59,6 +59,9 @@ const CopyTo = {
   text: function (tabs) {
     return tabs.map(tab => `${tab.title}: ${tab.url}`).join('\n');
   },
+  url_only: function (tabs) {
+    return tabs.map(tab => `${tab.url}`).join('\n');
+  },
   custom: function (tabs, template) {
     const currentDate = getCurrentDate();
 
@@ -91,6 +94,9 @@ const Action = {
             break;
           case 'json':
             outputText = CopyTo.json(filteredTabs);
+            break;
+          case 'url_only':
+            outputText = CopyTo.url_only(filteredTabs);
             break;
           case 'custom':
             outputText = CopyTo.custom(filteredTabs, customTemplate);
