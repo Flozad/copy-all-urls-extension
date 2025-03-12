@@ -1,6 +1,6 @@
 {
   "name": "Umbrella - Copy All URLs V3",
-  "version": "1.5.1",
+  "version": "1.6.1",
   "manifest_version": 3,
   "description": "Copy URLs from all tabs or selected tabs and paste to open them in new tabs.",
   "icons": {
