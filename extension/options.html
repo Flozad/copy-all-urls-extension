@@ -31,7 +31,7 @@
         <h3 class="text-xl font-semibold mb-4">Format</h3>
         <div id="formats" class="space-y-2 mb-6">
             <label class="flex items-center">
-                <input type="radio" name="format" id="format_text" value="text" class="mr-2"> Text
+                <input type="radio" name="format" id="format_text" value="text" class="mr-2"> Text (URL + Title)
             </label>
             <label class="flex items-center">
                 <input type="radio" name="format" id="format_html" value="html" class="mr-2"> HTML
@@ -41,6 +41,9 @@
             </label>
             <label class="flex items-center">
                 <input type="radio" name="format" id="format_url_only" value="url_only" class="mr-2"> URL Only
+            </label>
+            <label class="flex items-center">
+                <input type="radio" name="format" id="format_delimited" value="delimited" class="mr-2"> Delimited
             </label>
             <label class="flex items-center">
                 <input type="radio" name="format" id="format_custom" value="custom" class="mr-2"> Custom
@@ -63,6 +66,13 @@
             <h4 class="text-lg font-medium mb-2">Custom Format</h4>
             <textarea id="custom_template" class="w-full p-2 border border-gray-300 rounded" rows="5"></textarea>
             <p class="text-sm mt-2">Example: <code class="bg-gray-200 p-1 rounded">&lt;a href=&quot;$url&quot;&gt;$url&lt;/a&gt; - $title - $date&lt;br/&gt;</code></p>
+        </div>
+
+        <div id="delimited_advanced" class="hidden bg-gray-100 p-4 rounded-lg mb-6">
+            <h4 class="text-lg font-medium mb-2">Delimiter Settings</h4>
+            <input type="text" id="delimiter_input" class="w-full p-2 border border-gray-300 rounded" 
+                   placeholder="Enter delimiter (e.g., tab, comma, etc.)" value="\t">
+            <p class="text-sm mt-2">Common delimiters: \t (tab), , (comma), | (pipe)</p>
         </div>
 
         <h3 class="text-xl font-semibold mb-4">Miscellaneous</h3>
@@ -92,8 +102,19 @@
             <p class="text-gray-600 text-sm">Choose whether to copy content as Plain Text or HTML. HTML will allow URLs to be copied as clickable links, which is useful for pasting into email clients or word processors.</p>
         </div>
 
-        <div class="mt-6">
+        <div class="mt-6 flex space-x-4">
             <button id="reset_settings" class="bg-red-500 text-white px-4 py-2 rounded">Reset Settings</button>
+        </div>
+        
+        <div id="reset_confirmation" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md">
+                <h3 class="text-xl font-bold mb-4">Confirm Reset</h3>
+                <p class="mb-6">Are you sure you want to reset all settings to their default values? This cannot be undone.</p>
+                <div class="flex justify-end space-x-4">
+                    <button id="cancel_reset" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+                    <button id="confirm_reset" class="bg-red-500 text-white px-4 py-2 rounded">Reset</button>
+                </div>
+            </div>
         </div>
     </div>
 

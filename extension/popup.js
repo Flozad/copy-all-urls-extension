@@ -55,4 +55,64 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
+
+  // Load the current format setting when popup opens
+  chrome.storage.sync.get(['format'], function(items) {
+    const formatSelector = document.getElementById('formatSelector');
+    if (formatSelector && items.format) {
+      formatSelector.value = items.format;
+    }
+  });
+  
+  // Set up the format selector change event
+  const formatSelector = document.getElementById('formatSelector');
+  if (formatSelector) {
+    formatSelector.addEventListener('change', function(e) {
+      const format = e.target.value;
+      const advancedSettings = document.getElementById('formatAdvancedSettings');
+      const delimitedSettings = document.getElementById('delimitedSettings');
+      const customSettings = document.getElementById('customSettings');
+      
+      // Show/hide appropriate settings
+      advancedSettings.classList.toggle('hidden', format !== 'delimited' && format !== 'custom');
+      delimitedSettings.classList.toggle('hidden', format !== 'delimited');
+      customSettings.classList.toggle('hidden', format !== 'custom');
+      
+      // Save format selection
+      chrome.storage.sync.set({ format: format });
+    });
+  }
+
+  // Load saved settings
+  chrome.storage.sync.get({
+    format: 'text',
+    delimiter: '\t',
+    customTemplate: '{title} - {url}'
+  }, function(settings) {
+    // Set format dropdown
+    document.getElementById('formatSelector').value = settings.format;
+    
+    // Set input values
+    document.getElementById('delimiterInput').value = settings.delimiter;
+    document.getElementById('customTemplateInput').value = settings.customTemplate;
+    
+    // Show/hide settings based on format
+    const advancedSettings = document.getElementById('formatAdvancedSettings');
+    const delimitedSettings = document.getElementById('delimitedSettings');
+    const customSettings = document.getElementById('customSettings');
+    
+    advancedSettings.classList.toggle('hidden', settings.format !== 'delimited' && settings.format !== 'custom');
+    delimitedSettings.classList.toggle('hidden', settings.format !== 'delimited');
+    customSettings.classList.toggle('hidden', settings.format !== 'custom');
+  });
+
+  // Save delimiter changes
+  document.getElementById('delimiterInput').addEventListener('input', function(e) {
+    chrome.storage.sync.set({ delimiter: e.target.value });
+  });
+
+  // Save custom template changes
+  document.getElementById('customTemplateInput').addEventListener('input', function(e) {
+    chrome.storage.sync.set({ customTemplate: e.target.value });
+  });
 });

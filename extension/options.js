@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('version_label').textContent = manifestData.version;
   
     const defaultSettings = {
-        format: 'text',
+        format: 'url_only',
         anchor: 'url',
         customTemplate: '',
         smartPaste: false,
@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedTabsOnly: false,
         defaultBehavior: 'menu',
         mimeType: 'plaintext',
+        delimiter: '\t'
     };
   
     chrome.storage.sync.get(defaultSettings, function(settings) {
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('include_all_windows').checked = settings.includeAllWindows;
         document.getElementById('selected_tabs_only').checked = settings.selectedTabsOnly;
         document.getElementById('mime_type').value = settings.mimeType;
+        document.getElementById('delimiter_input').value = settings.delimiter;
   
         toggleAdvancedOptions(settings.format);
     });
@@ -62,17 +64,28 @@ document.addEventListener('DOMContentLoaded', function() {
         chrome.storage.sync.set({ mimeType: e.target.value });
     });
   
+    document.getElementById('delimiter_input').addEventListener('input', function(e) {
+        chrome.storage.sync.set({ delimiter: e.target.value });
+    });
+  
     document.getElementById('reset_settings').addEventListener('click', function() {
+        document.getElementById('reset_confirmation').classList.remove('hidden');
+    });
+  
+    document.getElementById('cancel_reset').addEventListener('click', function() {
+        document.getElementById('reset_confirmation').classList.add('hidden');
+    });
+  
+    document.getElementById('confirm_reset').addEventListener('click', function() {
         chrome.storage.sync.clear(function() {
-            chrome.storage.sync.set(defaultSettings, function() {
-                location.reload();
-            });
+            location.reload();
         });
     });
   
     function toggleAdvancedOptions(format) {
         document.getElementById('html_advanced').style.display = format === 'html' ? 'block' : 'none';
         document.getElementById('custom_advanced').style.display = format === 'custom' ? 'block' : 'none';
+        document.getElementById('delimited_advanced').style.display = format === 'delimited' ? 'block' : 'none';
     }
   
     function getCurrentDate() {

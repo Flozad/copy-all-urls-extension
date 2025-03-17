@@ -43,6 +43,21 @@
       width: 18px;
       height: 18px;
     }
+    
+    .format-dropdown {
+      background-color: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+    }
+    
+    .format-dropdown:focus {
+      outline: none;
+      border-color: #9ca3af;
+      box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.2);
+    }
   </style>
 </head>
 <body class="p-6 bg-gray-100">
@@ -76,7 +91,7 @@
 
     <hr class="border-gray-300 my-4">
 
-    <div class="text-center">
+    <div class="flex items-center justify-center space-x-4">
       <a href="#" id="actionOption" class="text-link inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium">
         <svg xmlns="http://www.w3.org/2000/svg" class="icon-size mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
@@ -84,9 +99,38 @@
         </svg>
         Options
       </a>
+      
+        <select id="formatSelector" class="flex-1 p-2 border border-gray-300 rounded">
+        <option value="text">Text (URL + Title)</option>
+        <option value="html">HTML</option>
+        <option value="json">JSON</option>
+        <option value="url_only">URL Only</option>
+        <option value="delimited">Delimited</option>
+        <option value="custom">Custom</option>
+      </select>
     </div>
+    
+    <div id="formatAdvancedSettings" class="hidden mb-4 mt-2">
+      <div id="delimitedSettings" class="hidden">
+        <input type="text" 
+               id="delimiterInput" 
+               class="w-full p-2 border border-gray-300 rounded" 
+               placeholder="Enter delimiter (e.g., tab, comma)"
+        >
+        <p class="text-xs text-gray-500 mt-1">Delimiter in between title and url. Common: \t (tab), , (comma), | (pipe)</p>
+      </div>
+      
+      <div id="customSettings" class="hidden">
+        <input type="text" 
+               id="customTemplateInput" 
+               class="w-full p-2 border border-gray-300 rounded" 
+               placeholder="Custom template (e.g., $url - $title - $date)"
+        >
+      </div>
+    </div>
+    
     <div id="message" class="mt-4 text-green-500 text-center"></div>
-    <textarea id="copiedContent" class="w-full p-2 border border-gray-300 rounded" rows="10"></textarea>
+    <textarea id="copiedContent" class="w-full p-2 border border-gray-300 rounded mt-4" rows="10"></textarea>
     <footer class="mt-6 text-center">
       <hr class="border-gray-300 my-2">
       <p class="text-sm text-gray-500">

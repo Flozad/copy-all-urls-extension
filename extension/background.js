@@ -1,13 +1,14 @@
 try {
   chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.sync.set({
-      format: 'text',
+      format: 'url_only',
       mime: 'text/plain',
       selectedTabsOnly: false,
       includeAllWindows: false,
       customTemplate: '',
       defaultBehavior: 'copy',
-      smartPaste: true // Ensure smartPaste has a default value
+      smartPaste: true,
+      delimiter: '\t'
     }, () => {
       console.log('Default settings have been set.');
     });
@@ -70,16 +71,20 @@ const CopyTo = {
       output = output.replace(/\$date/g, currentDate);
       return output;
     }).join('\n');
+  },
+  delimited: function (tabs, delimiter) {
+    return tabs.map(tab => `${tab.title}${delimiter}${tab.url}`).join('\n');
   }
 };
 
 const Action = {
   copy: function () {
-    chrome.storage.sync.get(['format', 'mime', 'selectedTabsOnly', 'includeAllWindows', 'customTemplate'], function (items) {
-      const format = items['format'] || 'text';
+    chrome.storage.sync.get(['format', 'mime', 'selectedTabsOnly', 'includeAllWindows', 'customTemplate', 'delimiter'], function (items) {
+      const format = items['format'] || 'url_only';
       const selectedTabsOnly = items['selectedTabsOnly'] === true;
       const includeAllWindows = items['includeAllWindows'] === true;
       const customTemplate = items['customTemplate'] || '';
+      const delimiter = items['delimiter'] || '\t';
 
       const queryOptions = includeAllWindows ? {} : { currentWindow: true };
 
@@ -100,6 +105,9 @@ const Action = {
             break;
           case 'custom':
             outputText = CopyTo.custom(filteredTabs, customTemplate);
+            break;
+          case 'delimited':
+            outputText = CopyTo.delimited(filteredTabs, delimiter);
             break;
           default:
             outputText = CopyTo.text(filteredTabs);
