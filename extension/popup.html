@@ -137,8 +137,26 @@
     </div>
     
     <textarea id="copiedContent" class="w-full p-2 border border-gray-300 rounded mt-4" rows="10"></textarea>
+    <div class="flex justify-end mt-2 relative">
+      <div class="relative inline-block text-left">
+        <button id="exportButton" class="button inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-8 px-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-size mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export
+        </button>
+        <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+          <div class="py-1">
+            <button class="export-format-btn w-full px-4 py-2 text-sm text-left hover:bg-gray-100" data-format="csv">CSV Format</button>
+            <button class="export-format-btn w-full px-4 py-2 text-sm text-left hover:bg-gray-100" data-format="txt">Plain Text</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="message" class="mt-4 text-center text-lg font-medium"></div>
-    
+
     <footer class="mt-6 text-center">
       <hr class="border-gray-300 my-2">
       <p class="text-sm text-gray-500">

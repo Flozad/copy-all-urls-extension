@@ -115,4 +115,78 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('customTemplateInput').addEventListener('input', function(e) {
     chrome.storage.sync.set({ customTemplate: e.target.value });
   });
+
+  // Export functionality
+  const exportButton = document.getElementById('exportButton');
+  const exportDropdown = document.getElementById('exportDropdown');
+  const exportFormatButtons = document.querySelectorAll('.export-format-btn');
+
+  // Toggle dropdown
+  exportButton.addEventListener('click', function(e) {
+    e.stopPropagation();
+    exportDropdown.classList.toggle('hidden');
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function() {
+    exportDropdown.classList.add('hidden');
+  });
+
+  exportFormatButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const format = this.dataset.format;
+      const content = document.getElementById('copiedContent').value;
+      
+      let exportContent = '';
+      if (format === 'txt') {
+        // For TXT, just use the exact content from input
+        exportContent = content;
+      } else if (format === 'csv') {
+        // Check if content is JSON for CSV export
+        let lines;
+        try {
+          const parsed = JSON.parse(content);
+          if (Array.isArray(parsed) && parsed.length > 0 && (parsed[0].title || parsed[0].url)) {
+            // Convert JSON to lines format
+            lines = parsed.map(item => {
+              if (item.title && item.url) {
+                return `${item.title}\t${item.url}`;
+              }
+              return item.url || item.title || '';
+            });
+          } else {
+            lines = content.split('\n').filter(line => line.trim());
+          }
+        } catch (e) {
+          // Not JSON, process normally
+          lines = content.split('\n').filter(line => line.trim());
+        }
+
+        // Create CSV
+        exportContent = 'url,title\n' + lines.map(line => {
+          const [title, url] = line.split('\t');
+          if (url) {
+            return `${url.trim()},${title.trim()}`;
+          }
+          return `${line.trim()},`;
+        }).join('\n');
+      }
+
+      // Create and trigger download
+      const blob = new Blob([exportContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `urls.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      // Close dropdown and show success message
+      exportDropdown.classList.add('hidden');
+      document.getElementById('message').textContent = `URLs exported as ${format.toUpperCase()}!`;
+      setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+    });
+  });
 });
