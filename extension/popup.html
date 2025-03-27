@@ -58,6 +58,13 @@
       border-color: #9ca3af;
       box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.2);
     }
+
+    #message {
+        font-size: 16px;
+        color: green;
+        font-weight: 500;
+        margin: 10px 0;
+    }
   </style>
 </head>
 <body class="p-6 bg-gray-100">
@@ -129,8 +136,9 @@
       </div>
     </div>
     
-    <div id="message" class="mt-4 text-green-500 text-center"></div>
     <textarea id="copiedContent" class="w-full p-2 border border-gray-300 rounded mt-4" rows="10"></textarea>
+    <div id="message" class="mt-4 text-center text-lg font-medium"></div>
+    
     <footer class="mt-6 text-center">
       <hr class="border-gray-300 my-2">
       <p class="text-sm text-gray-500">

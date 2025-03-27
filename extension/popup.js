@@ -41,17 +41,17 @@ document.addEventListener('DOMContentLoaded', function() {
       navigator.clipboard.writeText(request.content).then(function() {
         console.log('Copied to clipboard successfully!');
         document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
-        setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
+        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
       }, function(err) {
         console.error('Could not copy text: ', err);
       });
     } else if (request.type === "paste") {
       if (request.success) {
         document.getElementById('message').textContent = `${request.urlCount} URLs opened successfully!`;
-        setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
+        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
       } else if (request.errorMsg) {
         document.getElementById('message').textContent = request.errorMsg;
-        setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
+        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
       }
     }
   });
