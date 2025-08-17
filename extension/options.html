@@ -104,6 +104,13 @@
 
         <div class="mt-6 flex space-x-4">
             <button id="reset_settings" class="bg-red-500 text-white px-4 py-2 rounded">Reset Settings</button>
+            <button id="storage_health_check" class="bg-blue-500 text-white px-4 py-2 rounded">Check Storage Health</button>
+            <button id="repair_storage" class="bg-yellow-500 text-white px-4 py-2 rounded">Repair Storage</button>
+        </div>
+        
+        <div id="storage_status" class="mt-4 p-4 border rounded hidden">
+            <h4 class="font-semibold mb-2">Storage Health Status</h4>
+            <div id="storage_results"></div>
         </div>
         
         <div id="reset_confirmation" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
