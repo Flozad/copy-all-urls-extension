@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedTabsOnly: false,
         defaultBehavior: 'menu',
         mimeType: 'plaintext',
-        delimiter: '\t'
+        delimiter: '\t',
+        showContextMenu: true
     };
 
     // Storage utility with error handling and fallbacks (duplicated from background.js)
@@ -153,6 +154,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (delimiterElement) {
                 delimiterElement.value = settings.delimiter || defaultSettings.delimiter;
             }
+
+            const showContextMenuElement = document.getElementById('show_context_menu');
+            if (showContextMenuElement) {
+                showContextMenuElement.checked = settings.showContextMenu !== false;
+            }
       
             toggleAdvancedOptions(settings.format);
         } catch (error) {
@@ -223,6 +229,20 @@ document.addEventListener('DOMContentLoaded', function() {
             showErrorMessage('Failed to save delimiter setting.');
         }
     }, 500));
+
+    document.getElementById('show_context_menu').addEventListener('change', async function(e) {
+        const success = await StorageUtil.setWithFallback('showContextMenu', e.target.checked);
+        if (!success) {
+            showErrorMessage('Failed to save context menu setting.');
+        } else {
+            // Send message to background script to reinitialize context menus
+            try {
+                await chrome.runtime.sendMessage({ type: 'updateContextMenus' });
+            } catch (error) {
+                console.error('Failed to update context menus:', error);
+            }
+        }
+    });
   
     document.getElementById('reset_settings').addEventListener('click', function() {
         document.getElementById('reset_confirmation').classList.remove('hidden');
@@ -370,6 +390,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const delimiterElement = document.getElementById('delimiter_input');
         if (delimiterElement) delimiterElement.value = defaultSettings.delimiter;
+
+        const showContextMenuElement = document.getElementById('show_context_menu');
+        if (showContextMenuElement) showContextMenuElement.checked = defaultSettings.showContextMenu;
         
         toggleAdvancedOptions(defaultSettings.format);
     }

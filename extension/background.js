@@ -8,7 +8,8 @@ const DEFAULT_SETTINGS = {
   selectedTabsOnly: false,
   defaultBehavior: 'menu',
   mimeType: 'plaintext',
-  delimiter: '\t'
+  delimiter: '\t',
+  showContextMenu: true
 };
 
 // Storage utility with error handling and fallbacks
@@ -94,6 +95,36 @@ const StorageUtil = {
   }
 };
 
+/**
+ * Initialize context menus based on user settings
+ */
+async function initializeContextMenus() {
+  try {
+    // Clear existing context menus
+    await chrome.contextMenus.removeAll();
+    
+    // Get current settings
+    const settings = await StorageUtil.getWithFallback(DEFAULT_SETTINGS);
+    
+    // Only create context menus if enabled
+    if (settings.showContextMenu !== false) {
+      chrome.contextMenus.create({
+        id: 'copyUrls',
+        title: 'Umbrella - Copy All URLs V3',
+        contexts: ['all']
+      });
+
+      chrome.contextMenus.create({
+        id: 'pasteUrls', 
+        title: 'Paste URLs',
+        contexts: ['all']
+      });
+    }
+  } catch (error) {
+    console.error('Failed to initialize context menus:', error);
+  }
+}
+
 try {
   chrome.runtime.onInstalled.addListener(async () => {
     // Initialize default settings with error handling
@@ -112,17 +143,8 @@ try {
       console.error('Some default settings failed to initialize.');
     }
 
-    chrome.contextMenus.create({
-      id: 'copyUrls',
-      title: 'Copy URLs',
-      contexts: ['all']
-    });
-
-    chrome.contextMenus.create({
-      id: 'pasteUrls',
-      title: 'Paste URLs',
-      contexts: ['all']
-    });
+    // Initialize context menus based on settings
+    await initializeContextMenus();
 
   });
 } catch (error) {
@@ -138,6 +160,19 @@ chrome.contextMenus.onClicked.addListener((info) => {
     }).catch(function(err) {
       console.error('Failed to read clipboard contents: ', err);
     });
+  }
+});
+
+// Listen for messages from options page
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'updateContextMenus') {
+    initializeContextMenus().then(() => {
+      sendResponse({ success: true });
+    }).catch((error) => {
+      console.error('Failed to update context menus:', error);
+      sendResponse({ success: false, error: error.message });
+    });
+    return true; // Keep the message channel open for async response
   }
 });
 
@@ -185,6 +220,7 @@ const Action = {
       const includeAllWindows = items['includeAllWindows'] === true;
       const customTemplate = items['customTemplate'] || DEFAULT_SETTINGS.customTemplate;
       const delimiter = items['delimiter'] || DEFAULT_SETTINGS.delimiter;
+      const mimeType = items['mimeType'] || DEFAULT_SETTINGS.mimeType;
 
       const queryOptions = includeAllWindows ? {} : { currentWindow: true };
 
@@ -214,7 +250,12 @@ const Action = {
             break;
         }
 
-        chrome.runtime.sendMessage({ type: "copy", copied_url: filteredTabs.length, content: outputText });
+        chrome.runtime.sendMessage({ 
+          type: "copy", 
+          copied_url: filteredTabs.length, 
+          content: outputText, 
+          mimeType: mimeType 
+        });
       });
     } catch (error) {
       console.error('Error in copy action:', error);

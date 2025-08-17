@@ -38,13 +38,48 @@ document.addEventListener('DOMContentLoaded', function() {
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.type === "copy") {
       document.getElementById('copiedContent').value = request.content;
-      navigator.clipboard.writeText(request.content).then(function() {
-        console.log('Copied to clipboard successfully!');
-        document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
-        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
-      }, function(err) {
-        console.error('Could not copy text: ', err);
-      });
+      
+      // Handle HTML vs plain text clipboard
+      if (request.mimeType === 'html') {
+        // For HTML content, write both HTML and plain text to clipboard
+        // Add proper HTML structure for better compatibility
+        const htmlContent = `<meta charset='utf-8'>${request.content}`;
+        const plainTextContent = request.content.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, '');
+        
+        const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+        const textBlob = new Blob([plainTextContent], { type: 'text/plain' });
+        
+        // Try to include multiple format types for better compatibility
+        const clipboardData = {
+          'text/html': htmlBlob,
+          'text/plain': textBlob
+        };
+        
+        const clipboardItem = new ClipboardItem(clipboardData);
+        
+        navigator.clipboard.write([clipboardItem]).then(function() {
+          console.log('Copied HTML to clipboard successfully!');
+          document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard as HTML!`;
+          setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+        }, function(err) {
+          console.error('Could not copy HTML: ', err);
+          // Fallback to plain text
+          navigator.clipboard.writeText(request.content).then(function() {
+            console.log('Copied as plain text fallback!');
+            document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
+            setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+          });
+        });
+      } else {
+        // Plain text copy
+        navigator.clipboard.writeText(request.content).then(function() {
+          console.log('Copied to clipboard successfully!');
+          document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
+          setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+        }, function(err) {
+          console.error('Could not copy text: ', err);
+        });
+      }
     } else if (request.type === "paste") {
       if (request.success) {
         document.getElementById('message').textContent = `${request.urlCount} URLs opened successfully!`;
