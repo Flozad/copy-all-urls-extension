@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.9.2] - 2025-08-18
+
+### Added
+- Keyboard shortcuts for Copy (Alt+Shift+C) and Paste (Alt+Shift+V) commands
+- Keyboard shortcuts section in options page showing available shortcuts
+- Global shortcuts that work when Chrome is active
+
+### Technical
+- Implemented Chrome commands API for keyboard shortcuts
+- Added command listeners in background script
+- Enhanced options page with shortcuts documentation
+
 ## [1.9.1] - 2025-08-18
 
 ### Changed

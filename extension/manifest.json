@@ -1,6 +1,6 @@
 {
   "name": "Umbrella - Copy All URLs V3",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "manifest_version": 3,
   "description": "Copy URLs from all tabs or selected tabs and paste to open them in new tabs.",
   "icons": {
@@ -30,6 +30,22 @@
     }
   ],
   "options_page": "options.html",
+  "commands": {
+    "copy-urls": {
+      "suggested_key": {
+        "default": "Alt+Shift+C",
+        "mac": "Alt+Shift+C"
+      },
+      "description": "Copy URLs from all open tabs"
+    },
+    "paste-urls": {
+      "suggested_key": {
+        "default": "Alt+Shift+V",
+        "mac": "Alt+Shift+V"
+      },
+      "description": "Paste URLs to open them in new tabs"
+    }
+  },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

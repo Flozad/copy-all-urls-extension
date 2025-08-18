@@ -278,3 +278,18 @@ chrome.action.onClicked.addListener(function () {
     }
   });
 });
+
+// Handle keyboard shortcuts
+chrome.commands.onCommand.addListener((command) => {
+  console.log('Command triggered:', command);
+  
+  if (command === 'copy-urls') {
+    Action.copy();
+  } else if (command === 'paste-urls') {
+    navigator.clipboard.readText().then(function(text) {
+      Action.paste(text);
+    }).catch(function(err) {
+      console.error('Failed to read clipboard contents for paste shortcut: ', err);
+    });
+  }
+});
