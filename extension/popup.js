@@ -1,18 +1,46 @@
 document.addEventListener('DOMContentLoaded', function() {
+  // Initialize paste source from storage immediately
+  chrome.storage.local.get(['pasteSource'], function(result) {
+    const pasteSource = result.pasteSource || 'clipboard';
+    const radio = document.querySelector(`input[name="pasteSource"][value="${pasteSource}"]`);
+    if (radio) {
+      radio.checked = true;
+      // If clipboard is selected, focus the button, otherwise focus textarea
+      if (pasteSource === 'clipboard') {
+        document.getElementById('actionPaste').focus();
+      } else {
+        document.getElementById('copiedContent').focus();
+      }
+    }
+  });
+
   document.getElementById('actionCopy').addEventListener('click', function() {
     chrome.runtime.sendMessage({ type: 'copy' });
   });
 
-  document.getElementById('actionPaste').addEventListener('click', function() {
+  document.getElementById('actionPaste').addEventListener('click', async function() {
     const pasteSource = document.querySelector('input[name="pasteSource"]:checked').value;
     if (pasteSource === 'clipboard') {
-      navigator.clipboard.readText().then(function(text) {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (!text || text.trim() === '') {
+          document.getElementById('message').textContent = 'Clipboard is empty or contains no text';
+          setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+          return;
+        }
         chrome.runtime.sendMessage({ type: 'paste', content: text });
-      }).catch(function(err) {
+      } catch (err) {
         console.error('Failed to read clipboard contents: ', err);
-      });
+        document.getElementById('message').textContent = 'Failed to read clipboard. Please paste manually in textarea.';
+        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+      }
     } else {
       const textareaContent = document.getElementById('copiedContent').value;
+      if (!textareaContent || textareaContent.trim() === '') {
+        document.getElementById('message').textContent = 'Textarea is empty. Please paste some URLs.';
+        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+        return;
+      }
       chrome.runtime.sendMessage({ type: 'paste', content: textareaContent });
     }
   });
@@ -39,45 +67,53 @@ document.addEventListener('DOMContentLoaded', function() {
     if (request.type === "copy") {
       document.getElementById('copiedContent').value = request.content;
       
-      // Handle HTML vs plain text clipboard
       if (request.mimeType === 'html') {
         // For HTML content, write both HTML and plain text to clipboard
-        // Add proper HTML structure for better compatibility
-        const htmlContent = `<meta charset='utf-8'>${request.content}`;
-        const plainTextContent = request.content.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, '');
-        
-        const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
-        const textBlob = new Blob([plainTextContent], { type: 'text/plain' });
-        
-        // Try to include multiple format types for better compatibility
-        const clipboardData = {
-          'text/html': htmlBlob,
-          'text/plain': textBlob
-        };
-        
-        const clipboardItem = new ClipboardItem(clipboardData);
-        
-        navigator.clipboard.write([clipboardItem]).then(function() {
-          console.log('Copied HTML to clipboard successfully!');
-          document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard as HTML!`;
-          setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
-        }, function(err) {
-          console.error('Could not copy HTML: ', err);
-          // Fallback to plain text
-          navigator.clipboard.writeText(request.content).then(function() {
-            console.log('Copied as plain text fallback!');
+        try {
+          const htmlContent = request.content;
+          const plainTextContent = request.content
+            .replace(/<[^>]*>/g, '')
+            .replace(/&[^;]+;/g, '')
+            .trim();
+          
+          const clipboardData = {
+            'text/html': new Blob([htmlContent], { type: 'text/html' }),
+            'text/plain': new Blob([plainTextContent], { type: 'text/plain' })
+          };
+          
+          const clipboardItem = new ClipboardItem(clipboardData);
+          
+          navigator.clipboard.write([clipboardItem]).then(function() {
+            document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard as HTML!`;
+            setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+          }).catch(function(err) {
+            // Fallback to plain text
+            return navigator.clipboard.writeText(plainTextContent);
+          }).then(function() {
             document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
             setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+          }).catch(function(err) {
+            document.getElementById('message').textContent = 'Failed to copy to clipboard';
+            setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
           });
-        });
+        } catch (err) {
+          // Fallback to simple plain text copy
+          navigator.clipboard.writeText(request.content).then(function() {
+            document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
+            setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+          }).catch(function(err) {
+            document.getElementById('message').textContent = 'Failed to copy to clipboard';
+            setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+          });
+        }
       } else {
         // Plain text copy
         navigator.clipboard.writeText(request.content).then(function() {
-          console.log('Copied to clipboard successfully!');
           document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
           setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
-        }, function(err) {
-          console.error('Could not copy text: ', err);
+        }).catch(function(err) {
+          document.getElementById('message').textContent = 'Failed to copy to clipboard';
+          setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
         });
       }
     } else if (request.type === "paste") {
@@ -85,7 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('message').textContent = `${request.urlCount} URLs opened successfully!`;
         setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
       } else if (request.errorMsg) {
-        document.getElementById('message').textContent = request.errorMsg;
+        document.getElementById('message').textContent = `Error: ${request.errorMsg}`;
+        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+      } else if (request.error) {
+        document.getElementById('message').textContent = `Error: ${request.error}`;
         setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
       }
     }
@@ -121,14 +160,23 @@ document.addEventListener('DOMContentLoaded', function() {
   // Load saved settings
   chrome.storage.sync.get({
     format: 'text',
-    delimiter: '\t',
+    delimiter: '--',
     customTemplate: '{title} - {url}'
   }, function(settings) {
     // Set format dropdown
     document.getElementById('formatSelector').value = settings.format;
     
-    // Set input values
-    document.getElementById('delimiterInput').value = settings.delimiter;
+    // Set input values with proper handling of special characters
+    const delimiterInput = document.getElementById('delimiterInput');
+    if (settings.delimiter === '\\t') {
+      delimiterInput.value = '\\t';
+    } else if (settings.delimiter === '\\n') {
+      delimiterInput.value = '\\n';
+    } else if (settings.delimiter === '\\r') {
+      delimiterInput.value = '\\r';
+    } else {
+      delimiterInput.value = settings.delimiter;
+    }
     document.getElementById('customTemplateInput').value = settings.customTemplate;
     
     // Show/hide settings based on format
@@ -143,12 +191,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Save delimiter changes
   document.getElementById('delimiterInput').addEventListener('input', function(e) {
-    chrome.storage.sync.set({ delimiter: e.target.value });
+    let value = e.target.value;
+    // If empty, default to --
+    if (!value.trim()) {
+      value = '--';
+      this.value = value;
+    }
+    chrome.storage.sync.set({ delimiter: value });
   });
 
   // Save custom template changes
   document.getElementById('customTemplateInput').addEventListener('input', function(e) {
     chrome.storage.sync.set({ customTemplate: e.target.value });
+  });
+
+  // Add paste event listener to textarea
+  document.getElementById('copiedContent').addEventListener('paste', function(e) {
+    // Small delay to ensure the paste content is in the textarea
+    setTimeout(() => {
+      if (this.value.trim()) {
+        document.getElementById('actionPaste').focus();
+      }
+    }, 100);
   });
 
   // Export functionality
@@ -174,15 +238,12 @@ document.addEventListener('DOMContentLoaded', function() {
       
       let exportContent = '';
       if (format === 'txt') {
-        // For TXT, just use the exact content from input
         exportContent = content;
       } else if (format === 'csv') {
-        // Check if content is JSON for CSV export
         let lines;
         try {
           const parsed = JSON.parse(content);
           if (Array.isArray(parsed) && parsed.length > 0 && (parsed[0].title || parsed[0].url)) {
-            // Convert JSON to lines format
             lines = parsed.map(item => {
               if (item.title && item.url) {
                 return `${item.title}\t${item.url}`;
@@ -193,11 +254,9 @@ document.addEventListener('DOMContentLoaded', function() {
             lines = content.split('\n').filter(line => line.trim());
           }
         } catch (e) {
-          // Not JSON, process normally
           lines = content.split('\n').filter(line => line.trim());
         }
 
-        // Create CSV
         exportContent = 'url,title\n' + lines.map(line => {
           const [title, url] = line.split('\t');
           if (url) {
@@ -207,7 +266,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }).join('\n');
       }
 
-      // Create and trigger download
       const blob = new Blob([exportContent], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -218,7 +276,6 @@ document.addEventListener('DOMContentLoaded', function() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       
-      // Close dropdown and show success message
       exportDropdown.classList.add('hidden');
       document.getElementById('message').textContent = `URLs exported as ${format.toUpperCase()}!`;
       setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
