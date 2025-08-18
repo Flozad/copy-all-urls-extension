@@ -1,4 +1,26 @@
 document.addEventListener('DOMContentLoaded', async function() {
+  // Check if there are URLs from keyboard shortcut to copy to clipboard
+  try {
+    const result = await chrome.storage.local.get(['lastCopiedUrls', 'lastCopyTimestamp']);
+    if (result.lastCopiedUrls && result.lastCopyTimestamp) {
+      const timeDiff = Date.now() - result.lastCopyTimestamp;
+      // If the URLs were copied via keyboard shortcut within the last 5 seconds
+      if (timeDiff < 5000) {
+        // Copy to clipboard
+        await navigator.clipboard.writeText(result.lastCopiedUrls);
+        document.getElementById('copiedContent').value = result.lastCopiedUrls;
+        document.getElementById('message').textContent = 'URLs copied to clipboard via keyboard shortcut!';
+        setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
+        
+        // Clear the stored URLs
+        chrome.storage.local.remove(['lastCopiedUrls', 'lastCopyTimestamp']);
+        return; // Don't auto-copy again
+      }
+    }
+  } catch (error) {
+    console.error('Error checking for keyboard shortcut URLs:', error);
+  }
+
   // Wait a short moment for the popup to fully initialize
   setTimeout(() => {
     // Send message to background script to copy URLs when popup opens

@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.9.3] - 2025-08-18
+
+### Fixed
+- Keyboard shortcuts now work from background without requiring active tab
+- Fixed clipboard access issues in Manifest V3 service worker context
+- Improved keyboard shortcut reliability with proper error handling
+- Added visual feedback with extension badge for shortcut actions
+- Added notifications to guide users for paste operations
+
+### Changed  
+- Keyboard shortcuts now show notifications and use extension popup for clipboard access
+- Enhanced error handling for clipboard operations across different contexts
+- Improved user feedback with badge indicators for shortcut status
+
 ## [1.9.2] - 2025-08-18
 
 ### Added

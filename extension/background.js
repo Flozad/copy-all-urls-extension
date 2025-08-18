@@ -33,15 +33,37 @@ try {
   console.error('Service worker registration failed:', error);
 }
 
-chrome.contextMenus.onClicked.addListener((info) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'copyUrls') {
     Action.copy();
   } else if (info.menuItemId === 'pasteUrls') {
-    navigator.clipboard.readText().then(function(text) {
-      Action.paste(text);
-    }).catch(function(err) {
-      console.error('Failed to read clipboard contents: ', err);
-    });
+    try {
+      if (tab) {
+        // Inject script to read clipboard from content script context
+        const results = await chrome.scripting.executeScript({
+          target: {tabId: tab.id},
+          func: async () => {
+            try {
+              const text = await navigator.clipboard.readText();
+              return text;
+            } catch (error) {
+              console.error('Clipboard read error:', error);
+              return null;
+            }
+          }
+        });
+        
+        const clipboardText = results[0]?.result;
+        
+        if (clipboardText && clipboardText.trim()) {
+          Action.paste(clipboardText);
+        } else {
+          console.warn('Clipboard is empty for context menu paste');
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read clipboard contents from context menu:', err);
+    }
   }
 });
 
@@ -111,10 +133,7 @@ const Action = {
         const filteredTabs = selectedTabsOnly ? tabs.filter(tab => tab.highlighted) : tabs;
 
         if (filteredTabs.length === 0) {
-          chrome.runtime.sendMessage({ 
-            type: "copy", 
-            error: "No tabs found to copy" 
-          });
+          console.warn('No tabs found to copy');
           return;
         }
 
@@ -263,16 +282,38 @@ chrome.runtime.onMessage.addListener(function (request) {
   }
 });
 
-chrome.action.onClicked.addListener(function () {
-  chrome.storage.sync.get(['defaultBehavior'], function (items) {
+chrome.action.onClicked.addListener(async function (tab) {
+  chrome.storage.sync.get(['defaultBehavior'], async function (items) {
     if (items.defaultBehavior === 'copy') {
       Action.copy();
     } else if (items.defaultBehavior === 'paste') {
-      navigator.clipboard.readText().then(function(text) {
-        Action.paste(text);
-      }).catch(function(err) {
-        console.error('Failed to read clipboard contents: ', err);
-      });
+      try {
+        if (tab) {
+          // Inject script to read clipboard from content script context
+          const results = await chrome.scripting.executeScript({
+            target: {tabId: tab.id},
+            func: async () => {
+              try {
+                const text = await navigator.clipboard.readText();
+                return text;
+              } catch (error) {
+                console.error('Clipboard read error:', error);
+                return null;
+              }
+            }
+          });
+          
+          const clipboardText = results[0]?.result;
+          
+          if (clipboardText && clipboardText.trim()) {
+            Action.paste(clipboardText);
+          } else {
+            console.warn('Clipboard is empty for action button paste');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to read clipboard contents from action button:', err);
+      }
     } else {
       chrome.runtime.openOptionsPage();
     }
@@ -280,16 +321,127 @@ chrome.action.onClicked.addListener(function () {
 });
 
 // Handle keyboard shortcuts
-chrome.commands.onCommand.addListener((command) => {
-  console.log('Command triggered:', command);
+chrome.commands.onCommand.addListener(async (command) => {
+  console.log('Keyboard shortcut triggered:', command);
   
-  if (command === 'copy-urls') {
-    Action.copy();
-  } else if (command === 'paste-urls') {
-    navigator.clipboard.readText().then(function(text) {
-      Action.paste(text);
-    }).catch(function(err) {
-      console.error('Failed to read clipboard contents for paste shortcut: ', err);
-    });
+  try {
+    if (command === 'copy-urls') {
+      console.log('Executing copy command via shortcut');
+      
+      // Show immediate feedback
+      chrome.action.setBadgeText({text: '⏳'});
+      chrome.action.setBadgeBackgroundColor({color: '#FF9800'});
+      
+      // Execute copy action directly (it will copy to clipboard via chrome.action or system clipboard)
+      ActionKeyboard.copy();
+      
+    } else if (command === 'paste-urls') {
+      console.log('Executing paste command via shortcut');
+      
+      // Show immediate feedback  
+      chrome.action.setBadgeText({text: '⏳'});
+      chrome.action.setBadgeBackgroundColor({color: '#FF9800'});
+      
+      // For paste, we need to open the popup to access clipboard or use a different approach
+      // Since we can't access clipboard directly from background, we'll create a notification
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icon.png',
+        title: 'Copy All URLs',
+        message: 'Please click the extension icon and use the Paste button to paste URLs from clipboard.'
+      });
+      
+      // Show info feedback
+      chrome.action.setBadgeText({text: 'ℹ'});
+      chrome.action.setBadgeBackgroundColor({color: '#2196F3'});
+      setTimeout(() => {
+        chrome.action.setBadgeText({text: ''});
+      }, 3000);
+      
+    } else {
+      console.warn('Unknown command:', command);
+    }
+  } catch (error) {
+    console.error('Error handling keyboard shortcut:', error);
+    
+    // Show error badge
+    chrome.action.setBadgeText({text: '!'});
+    chrome.action.setBadgeBackgroundColor({color: '#F44336'});
+    setTimeout(() => {
+      chrome.action.setBadgeText({text: ''});
+    }, 2000);
   }
 });
+
+// Keyboard-specific actions that work without tab context
+const ActionKeyboard = {
+  copy: function() {
+    chrome.storage.sync.get(['format', 'mime', 'selectedTabsOnly', 'includeAllWindows', 'customTemplate', 'delimiter'], function (items) {
+      const format = items['format'] || 'url_only';
+      const selectedTabsOnly = items['selectedTabsOnly'] === true;
+      const includeAllWindows = items['includeAllWindows'] === true;
+      const customTemplate = items['customTemplate'] || '';
+      const delimiter = items['delimiter'] || '\t';
+
+      const queryOptions = includeAllWindows ? {} : { currentWindow: true };
+
+      chrome.tabs.query(queryOptions, async function (tabs) {
+        const filteredTabs = selectedTabsOnly ? tabs.filter(tab => tab.highlighted) : tabs;
+
+        if (filteredTabs.length === 0) {
+          console.warn('No tabs found to copy');
+          chrome.action.setBadgeText({text: '∅'});
+          chrome.action.setBadgeBackgroundColor({color: '#FF9800'});
+          setTimeout(() => {
+            chrome.action.setBadgeText({text: ''});
+          }, 2000);
+          return;
+        }
+
+        let outputText;
+
+        switch (format) {
+          case 'html':
+            outputText = CopyTo.html(filteredTabs);
+            break;
+          case 'json':
+            outputText = CopyTo.json(filteredTabs);
+            break;
+          case 'url_only':
+            outputText = CopyTo.url_only(filteredTabs);
+            break;
+          case 'custom':
+            outputText = CopyTo.custom(filteredTabs, customTemplate);
+            break;
+          case 'delimited':
+            outputText = CopyTo.delimited(filteredTabs, delimiter);
+            break;
+          default:
+            outputText = CopyTo.text(filteredTabs);
+            break;
+        }
+
+        // Store the URLs for the popup to access
+        chrome.storage.local.set({
+          lastCopiedUrls: outputText,
+          lastCopyTimestamp: Date.now()
+        });
+        
+        // Show notification
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: 'icon.png',
+          title: 'URLs Copied!',
+          message: `Copied ${filteredTabs.length} URLs. Click extension icon to access them in clipboard.`
+        });
+
+        // Show success feedback
+        chrome.action.setBadgeText({text: '✓'});
+        chrome.action.setBadgeBackgroundColor({color: '#4CAF50'});
+        setTimeout(() => {
+          chrome.action.setBadgeText({text: ''});
+        }, 2000);
+      });
+    });
+  }
+};

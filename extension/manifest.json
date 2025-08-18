@@ -1,6 +1,6 @@
 {
   "name": "Umbrella - Copy All URLs V3",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "manifest_version": 3,
   "description": "Copy URLs from all tabs or selected tabs and paste to open them in new tabs.",
   "icons": {
@@ -18,7 +18,8 @@
     "activeTab",
     "clipboardRead",
     "clipboardWrite",
-    "contextMenus"
+    "contextMenus",
+    "notifications"
   ],
   "background": {
     "service_worker": "background.js"
