@@ -1,6 +1,14 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  // Wait a short moment for the popup to fully initialize
+  setTimeout(() => {
+    // Send message to background script to copy URLs when popup opens
+    chrome.runtime.sendMessage({ type: 'copy' }, (response) => {
+    });
+  }, 100);
+
   // Initialize paste source from storage immediately
-  chrome.storage.local.get(['pasteSource'], function(result) {
+  try {
+    const result = await StorageUtil.getWithFallback('pasteSource');
     const pasteSource = result.pasteSource || 'clipboard';
     const radio = document.querySelector(`input[name="pasteSource"][value="${pasteSource}"]`);
     if (radio) {
@@ -12,7 +20,15 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('copiedContent').focus();
       }
     }
-  });
+  } catch (error) {
+    console.error('Failed to load paste source:', error);
+    // Use default value
+    const radio = document.querySelector('input[name="pasteSource"][value="clipboard"]');
+    if (radio) {
+      radio.checked = true;
+      document.getElementById('actionPaste').focus();
+    }
+  }
 
   document.getElementById('actionCopy').addEventListener('click', function() {
     chrome.runtime.sendMessage({ type: 'copy' });

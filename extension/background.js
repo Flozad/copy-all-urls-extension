@@ -5,9 +5,10 @@ const DEFAULT_SETTINGS = {
   selectedTabsOnly: false,
   includeAllWindows: false,
   customTemplate: '',
-  defaultBehavior: 'copy',
+  defaultBehavior: 'copy',  // Ensure this is set to 'copy'
   smartPaste: true,
-  delimiter: '--'
+  delimiter: '--',
+  autoAction: true  // New setting to control automatic copy on popup open
 };
 
 try {

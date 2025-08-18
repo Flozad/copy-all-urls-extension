@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.9.1] - 2025-08-18
+
+### Changed
+- Automatically copy URLs when popup opens for faster workflow
+
+## [1.9.0] - 2025-08-18
+
+### Added
+- Context menu toggle functionality for quick access
+- Enhanced HTML clipboard support with proper formatting
+- Export functionality with TXT and CSV formats
+- Bold formatting option for URLs
+
+### Changed
+- Improved storage management architecture
+- Enhanced user interface for better usability
+- Updated options page with new features
+
+### Technical
+- Implemented StorageUtil for robust storage operations
+- Added comprehensive error handling
+- Improved clipboard handling with multiple format support
+
 ## [1.8.1] - 2025-08-17
 
 ### Added
