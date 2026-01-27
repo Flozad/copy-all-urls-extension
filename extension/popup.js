@@ -1,105 +1,148 @@
-document.addEventListener('DOMContentLoaded', async function() {
-  // Check if there are URLs from keyboard shortcut to copy to clipboard
-  try {
-    const result = await chrome.storage.local.get(['lastCopiedUrls', 'lastCopyTimestamp']);
-    if (result.lastCopiedUrls && result.lastCopyTimestamp) {
-      const timeDiff = Date.now() - result.lastCopyTimestamp;
-      // If the URLs were copied via keyboard shortcut within the last 5 seconds
-      if (timeDiff < 5000) {
-        // Copy to clipboard
-        await navigator.clipboard.writeText(result.lastCopiedUrls);
-        document.getElementById('copiedContent').value = result.lastCopiedUrls;
-        document.getElementById('message').textContent = 'URLs copied to clipboard via keyboard shortcut!';
-        setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
-        
-        // Clear the stored URLs
-        chrome.storage.local.remove(['lastCopiedUrls', 'lastCopyTimestamp']);
-        return; // Don't auto-copy again
-      }
-    }
-  } catch (error) {
-    console.error('Error checking for keyboard shortcut URLs:', error);
+// Theme management
+function applyTheme(theme) {
+  // Remove all theme classes
+  document.body.classList.remove('theme-auto', 'theme-light', 'theme-dark');
+
+  // Add the appropriate theme class
+  if (theme === 'auto') {
+    document.body.classList.add('theme-auto');
+  } else if (theme === 'light') {
+    document.body.classList.add('theme-light');
+  } else if (theme === 'dark') {
+    document.body.classList.add('theme-dark');
+  }
+}
+
+// Helper function to show messages with smooth transitions
+function showMessage(text, type = 'success') {
+  const messageEl = document.getElementById('message');
+  messageEl.textContent = text;
+  messageEl.classList.remove('opacity-0', 'bg-green-200', 'bg-red-100', 'text-green-800', 'text-red-700');
+
+  if (type === 'success') {
+    messageEl.classList.add('bg-green-200', 'text-green-800');
+  } else {
+    messageEl.classList.add('bg-red-100', 'text-red-700');
   }
 
-  // Wait a short moment for the popup to fully initialize
+  messageEl.classList.add('opacity-100');
+
   setTimeout(() => {
-    // Send message to background script to copy URLs when popup opens
-    chrome.runtime.sendMessage({ type: 'copy' }, (response) => {
-    });
-  }, 100);
+    messageEl.classList.remove('opacity-100');
+    messageEl.classList.add('opacity-0');
+    setTimeout(() => {
+      messageEl.textContent = '';
+      messageEl.classList.remove('bg-green-200', 'bg-red-100', 'text-green-800', 'text-red-700');
+    }, 300);
+  }, 3000);
+}
 
-  // Initialize paste source from storage immediately
+document.addEventListener('DOMContentLoaded', async function() {
+  // Load and apply theme
+  chrome.storage.sync.get(['theme'], function(result) {
+    const theme = result.theme || DEFAULT_SETTINGS.theme;
+    applyTheme(theme);
+  });
+
+  // Auto-copy on popup open (if enabled in settings)
   try {
-    const result = await StorageUtil.getWithFallback('pasteSource');
-    const pasteSource = result.pasteSource || 'clipboard';
-    const radio = document.querySelector(`input[name="pasteSource"][value="${pasteSource}"]`);
-    if (radio) {
-      radio.checked = true;
-      // If clipboard is selected, focus the button, otherwise focus textarea
-      if (pasteSource === 'clipboard') {
-        document.getElementById('actionPaste').focus();
-      } else {
-        document.getElementById('copiedContent').focus();
-      }
+    const settings = await chrome.storage.sync.get(['autoAction']);
+    const autoAction = settings.autoAction !== false; // Default to true
+
+    if (autoAction) {
+      // Wait a short moment for the popup to fully initialize
+      setTimeout(() => {
+        // Send message to background script to copy URLs when popup opens
+        chrome.runtime.sendMessage({ type: 'copy' }, (response) => {
+        });
+      }, 100);
     }
   } catch (error) {
-    console.error('Failed to load paste source:', error);
-    // Use default value
-    const radio = document.querySelector('input[name="pasteSource"][value="clipboard"]');
-    if (radio) {
-      radio.checked = true;
-      document.getElementById('actionPaste').focus();
-    }
+    console.error('Error checking auto-action setting:', error);
+    // Default to auto-copy on error
+    setTimeout(() => {
+      chrome.runtime.sendMessage({ type: 'copy' }, (response) => {
+      });
+    }, 100);
   }
+
+  // Paste source management
+  let currentPasteSource = 'clipboard'; // clipboard or textarea
+
+  // Load stored paste source
+  chrome.storage.local.get(['pasteSource'], function(result) {
+    currentPasteSource = result.pasteSource || 'clipboard';
+    updateSourceIndicator(currentPasteSource);
+  });
 
   document.getElementById('actionCopy').addEventListener('click', function() {
     chrome.runtime.sendMessage({ type: 'copy' });
   });
 
   document.getElementById('actionPaste').addEventListener('click', async function() {
-    const pasteSource = document.querySelector('input[name="pasteSource"]:checked').value;
-    if (pasteSource === 'clipboard') {
-      try {
-        const text = await navigator.clipboard.readText();
-        if (!text || text.trim() === '') {
-          document.getElementById('message').textContent = 'Clipboard is empty or contains no text';
-          setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
-          return;
-        }
-        chrome.runtime.sendMessage({ type: 'paste', content: text });
-      } catch (err) {
-        console.error('Failed to read clipboard contents: ', err);
-        document.getElementById('message').textContent = 'Failed to read clipboard. Please paste manually in textarea.';
-        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
-      }
-    } else {
-      const textareaContent = document.getElementById('copiedContent').value;
+    const textareaContent = document.getElementById('copiedContent').value;
+
+    if (currentPasteSource === 'textarea') {
+      // Use textarea
       if (!textareaContent || textareaContent.trim() === '') {
-        document.getElementById('message').textContent = 'Textarea is empty. Please paste some URLs.';
-        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+        showMessage('Textarea is empty. Please paste URLs here first.', 'error');
         return;
       }
       chrome.runtime.sendMessage({ type: 'paste', content: textareaContent });
+    } else {
+      // Use clipboard - try to read HTML first, then fall back to plain text
+      try {
+        let content = '';
+        let isHtml = false;
+
+        try {
+          // Try to read clipboard with HTML support
+          const clipboardItems = await navigator.clipboard.read();
+
+          for (const item of clipboardItems) {
+            // Check if HTML is available
+            if (item.types.includes('text/html')) {
+              const htmlBlob = await item.getType('text/html');
+              content = await htmlBlob.text();
+              isHtml = true;
+              console.log('Read HTML from clipboard');
+              break;
+            }
+
+            // Fallback to plain text
+            if (item.types.includes('text/plain')) {
+              const textBlob = await item.getType('text/plain');
+              content = await textBlob.text();
+              console.log('Read plain text from clipboard');
+              break;
+            }
+          }
+        } catch (e) {
+          console.log('Clipboard.read() failed, falling back to readText():', e);
+          // Fallback to simple text reading
+          content = await navigator.clipboard.readText();
+        }
+
+        if (!content || content.trim() === '') {
+          showMessage('Clipboard is empty. Copy some URLs first.', 'error');
+          return;
+        }
+
+        chrome.runtime.sendMessage({ type: 'paste', content: content });
+      } catch (err) {
+        console.error('Failed to read clipboard contents: ', err);
+        showMessage('Failed to read clipboard. Check permissions.', 'error');
+      }
     }
   });
 
-  document.getElementById('actionOption').addEventListener('click', function() {
-    chrome.runtime.openOptionsPage();
-  });
-
-  // Restore the last selected paste source
-  chrome.storage.local.get(['pasteSource'], function(result) {
-    const pasteSource = result.pasteSource || 'clipboard';
-    document.querySelector(`input[name="pasteSource"][value="${pasteSource}"]`).checked = true;
-  });
-
-  // Save paste source selection
-  const pasteSourceRadios = document.querySelectorAll('input[name="pasteSource"]');
-  pasteSourceRadios.forEach(radio => {
-    radio.addEventListener('change', function() {
-      chrome.storage.local.set({ pasteSource: this.value });
+  // Options button click handler
+  const optionsButton = document.getElementById('optionsButton');
+  if (optionsButton) {
+    optionsButton.addEventListener('click', function() {
+      chrome.runtime.openOptionsPage();
     });
-  });
+  }
 
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.type === "copy") {
@@ -122,201 +165,299 @@ document.addEventListener('DOMContentLoaded', async function() {
           const clipboardItem = new ClipboardItem(clipboardData);
           
           navigator.clipboard.write([clipboardItem]).then(function() {
-            document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard as HTML!`;
-            setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+            showMessage(`Copied ${request.copied_url} URLs as HTML!`);
           }).catch(function(err) {
             // Fallback to plain text
             return navigator.clipboard.writeText(plainTextContent);
           }).then(function() {
-            document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
-            setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+            showMessage(`Copied ${request.copied_url} URLs to clipboard!`);
           }).catch(function(err) {
-            document.getElementById('message').textContent = 'Failed to copy to clipboard';
-            setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+            showMessage('Failed to copy to clipboard', 'error');
           });
         } catch (err) {
           // Fallback to simple plain text copy
           navigator.clipboard.writeText(request.content).then(function() {
-            document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
-            setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+            showMessage(`Copied ${request.copied_url} URLs to clipboard!`);
           }).catch(function(err) {
-            document.getElementById('message').textContent = 'Failed to copy to clipboard';
-            setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+            showMessage('Failed to copy to clipboard', 'error');
           });
         }
       } else {
         // Plain text copy
         navigator.clipboard.writeText(request.content).then(function() {
-          document.getElementById('message').textContent = `Copied ${request.copied_url} URLs to clipboard!`;
-          setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+          showMessage(`Copied ${request.copied_url} URLs to clipboard!`);
         }).catch(function(err) {
-          document.getElementById('message').textContent = 'Failed to copy to clipboard';
-          setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+          showMessage('Failed to copy to clipboard', 'error');
         });
       }
     } else if (request.type === "paste") {
       if (request.success) {
-        document.getElementById('message').textContent = `${request.urlCount} URLs opened successfully!`;
-        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+        showMessage(`${request.urlCount} URLs opened successfully!`);
       } else if (request.errorMsg) {
-        document.getElementById('message').textContent = `Error: ${request.errorMsg}`;
-        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+        showMessage(`Error: ${request.errorMsg}`, 'error');
       } else if (request.error) {
-        document.getElementById('message').textContent = `Error: ${request.error}`;
-        setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+        showMessage(`Error: ${request.error}`, 'error');
       }
     }
   });
 
-  // Load the current format setting when popup opens
-  chrome.storage.sync.get(['format'], function(items) {
-    const formatSelector = document.getElementById('formatSelector');
-    if (formatSelector && items.format) {
-      formatSelector.value = items.format;
+  // Format dropdown handling
+  const formatDropdownToggle = document.getElementById('formatDropdownToggle');
+  const formatDropdown = document.getElementById('formatDropdown');
+  const formatOptions = document.querySelectorAll('.format-option');
+  const delimiterInput = document.getElementById('delimiterInput');
+  const customTemplateInput = document.getElementById('customTemplateInput');
+  const advancedSettings = document.getElementById('formatAdvancedSettings');
+  const delimitedSettings = document.getElementById('delimitedSettings');
+  const customSettings = document.getElementById('customSettings');
+
+  let currentFormat = DEFAULT_SETTINGS.format;
+
+  // Source dropdown handling
+  const currentSourceIndicator = document.getElementById('currentSourceIndicator');
+  const sourceDropdown = document.getElementById('sourceDropdown');
+  const sourceOptions = document.querySelectorAll('.source-option');
+
+  // Map format codes to display names
+  const formatDisplayNames = {
+    'url_only': 'URL Only',
+    'text': 'Text (URL + Title)',
+    'html': 'HTML',
+    'json': 'JSON',
+    'delimited': 'Delimited',
+    'custom': 'Custom'
+  };
+
+  // Map source codes to display names
+  const sourceDisplayNames = {
+    'clipboard': 'Clipboard',
+    'textarea': 'Textarea'
+  };
+
+  // Function to update format indicator
+  function updateFormatIndicator(format) {
+    const indicator = document.getElementById('currentFormatIndicator');
+    if (indicator) {
+      const displayName = formatDisplayNames[format] || format;
+      const span = indicator.querySelector('span');
+      if (span) {
+        span.textContent = `Format: ${displayName}`;
+      } else {
+        // Fallback if span not found (shouldn't happen)
+        indicator.textContent = `Format: ${displayName}`;
+      }
     }
-  });
-  
-  // Set up the format selector change event
-  const formatSelector = document.getElementById('formatSelector');
-  if (formatSelector) {
-    formatSelector.addEventListener('change', function(e) {
-      const format = e.target.value;
-      const advancedSettings = document.getElementById('formatAdvancedSettings');
-      const delimitedSettings = document.getElementById('delimitedSettings');
-      const customSettings = document.getElementById('customSettings');
-      
-      // Show/hide appropriate settings
+  }
+
+  // Function to update source indicator
+  function updateSourceIndicator(source) {
+    const indicator = document.getElementById('currentSourceIndicator');
+    if (indicator) {
+      const displayName = sourceDisplayNames[source] || source;
+      const span = indicator.querySelector('span');
+      if (span) {
+        span.textContent = `Paste: ${displayName}`;
+      }
+    }
+    updateSourceCheckmark(source);
+  }
+
+  function updateSourceCheckmark(source) {
+    // Remove all checkmarks
+    sourceOptions.forEach(opt => {
+      const check = opt.querySelector('span');
+      if (check) check.textContent = '';
+    });
+
+    // Add checkmark to selected
+    const selectedOption = document.querySelector(`.source-option[data-source="${source}"]`);
+    if (selectedOption) {
+      let check = selectedOption.querySelector('span');
+      if (check) {
+        check.textContent = '✓';
+      }
+    }
+  }
+
+  // Function to show/hide advanced settings based on format
+  function updateAdvancedSettings(format) {
+    if (advancedSettings && delimitedSettings && customSettings) {
       advancedSettings.classList.toggle('hidden', format !== 'delimited' && format !== 'custom');
       delimitedSettings.classList.toggle('hidden', format !== 'delimited');
       customSettings.classList.toggle('hidden', format !== 'custom');
-      
-      // Save format selection
-      chrome.storage.sync.set({ format: format });
+    }
+  }
+
+  // Load saved format
+  chrome.storage.sync.get(['format'], function(items) {
+    if (items.format) {
+      currentFormat = items.format;
+      updateFormatCheckmark(currentFormat);
+      updateFormatIndicator(currentFormat);
+      updateAdvancedSettings(currentFormat);
+    } else {
+      updateFormatIndicator(currentFormat);
+      updateAdvancedSettings(currentFormat);
+    }
+  });
+
+  // Toggle dropdown
+  if (formatDropdownToggle) {
+    formatDropdownToggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      formatDropdown.classList.toggle('hidden');
     });
   }
 
-  // Load saved settings
-  chrome.storage.sync.get({
-    format: 'text',
-    delimiter: '--',
-    customTemplate: '{title} - {url}'
-  }, function(settings) {
-    // Set format dropdown
-    document.getElementById('formatSelector').value = settings.format;
-    
-    // Set input values with proper handling of special characters
-    const delimiterInput = document.getElementById('delimiterInput');
-    if (settings.delimiter === '\\t') {
-      delimiterInput.value = '\\t';
-    } else if (settings.delimiter === '\\n') {
-      delimiterInput.value = '\\n';
-    } else if (settings.delimiter === '\\r') {
-      delimiterInput.value = '\\r';
-    } else {
-      delimiterInput.value = settings.delimiter;
-    }
-    document.getElementById('customTemplateInput').value = settings.customTemplate;
-    
-    // Show/hide settings based on format
-    const advancedSettings = document.getElementById('formatAdvancedSettings');
-    const delimitedSettings = document.getElementById('delimitedSettings');
-    const customSettings = document.getElementById('customSettings');
-    
-    advancedSettings.classList.toggle('hidden', settings.format !== 'delimited' && settings.format !== 'custom');
-    delimitedSettings.classList.toggle('hidden', settings.format !== 'delimited');
-    customSettings.classList.toggle('hidden', settings.format !== 'custom');
-  });
+  // Make format indicator clickable to open dropdown
+  const formatIndicator = document.getElementById('currentFormatIndicator');
+  if (formatIndicator) {
+    formatIndicator.addEventListener('click', function(e) {
+      e.stopPropagation();
+      formatDropdown.classList.toggle('hidden');
+    });
+  }
 
-  // Save delimiter changes
-  document.getElementById('delimiterInput').addEventListener('input', function(e) {
-    let value = e.target.value;
-    // If empty, default to --
-    if (!value.trim()) {
-      value = '--';
-      this.value = value;
-    }
-    chrome.storage.sync.set({ delimiter: value });
-  });
-
-  // Save custom template changes
-  document.getElementById('customTemplateInput').addEventListener('input', function(e) {
-    chrome.storage.sync.set({ customTemplate: e.target.value });
-  });
-
-  // Add paste event listener to textarea
-  document.getElementById('copiedContent').addEventListener('paste', function(e) {
-    // Small delay to ensure the paste content is in the textarea
-    setTimeout(() => {
-      if (this.value.trim()) {
-        document.getElementById('actionPaste').focus();
+  // Make source indicator clickable to open dropdown
+  if (currentSourceIndicator && sourceDropdown) {
+    currentSourceIndicator.addEventListener('click', function(e) {
+      e.stopPropagation();
+      sourceDropdown.classList.toggle('hidden');
+      // Close format dropdown if open
+      if (formatDropdown && !formatDropdown.classList.contains('hidden')) {
+        formatDropdown.classList.add('hidden');
       }
-    }, 100);
-  });
+    });
+  }
 
-  // Export functionality
-  const exportButton = document.getElementById('exportButton');
-  const exportDropdown = document.getElementById('exportDropdown');
-  const exportFormatButtons = document.querySelectorAll('.export-format-btn');
+  // Handle source selection
+  sourceOptions.forEach(option => {
+    option.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const source = this.dataset.source;
+      currentPasteSource = source;
 
-  // Toggle dropdown
-  exportButton.addEventListener('click', function(e) {
-    e.stopPropagation();
-    exportDropdown.classList.toggle('hidden');
-  });
+      // Update indicator
+      updateSourceIndicator(source);
 
-  // Close dropdown when clicking outside
-  document.addEventListener('click', function() {
-    exportDropdown.classList.add('hidden');
-  });
+      // Hide dropdown
+      sourceDropdown.classList.add('hidden');
 
-  exportFormatButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const format = this.dataset.format;
-      const content = document.getElementById('copiedContent').value;
-      
-      let exportContent = '';
-      if (format === 'txt') {
-        exportContent = content;
-      } else if (format === 'csv') {
-        let lines;
-        try {
-          const parsed = JSON.parse(content);
-          if (Array.isArray(parsed) && parsed.length > 0 && (parsed[0].title || parsed[0].url)) {
-            lines = parsed.map(item => {
-              if (item.title && item.url) {
-                return `${item.title}\t${item.url}`;
-              }
-              return item.url || item.title || '';
-            });
-          } else {
-            lines = content.split('\n').filter(line => line.trim());
-          }
-        } catch (e) {
-          lines = content.split('\n').filter(line => line.trim());
-        }
-
-        exportContent = 'url,title\n' + lines.map(line => {
-          const [title, url] = line.split('\t');
-          if (url) {
-            return `${url.trim()},${title.trim()}`;
-          }
-          return `${line.trim()},`;
-        }).join('\n');
-      }
-
-      const blob = new Blob([exportContent], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `urls.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      exportDropdown.classList.add('hidden');
-      document.getElementById('message').textContent = `URLs exported as ${format.toUpperCase()}!`;
-      setTimeout(() => { document.getElementById('message').textContent = ''; }, 5000);
+      // Save to storage
+      chrome.storage.local.set({ pasteSource: source });
     });
   });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', function() {
+    if (formatDropdown && !formatDropdown.classList.contains('hidden')) {
+      formatDropdown.classList.add('hidden');
+    }
+    if (sourceDropdown && !sourceDropdown.classList.contains('hidden')) {
+      sourceDropdown.classList.add('hidden');
+    }
+  });
+
+  // Handle format selection
+  formatOptions.forEach(option => {
+    option.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const format = this.dataset.format;
+      currentFormat = format;
+
+      // Update checkmark
+      updateFormatCheckmark(format);
+
+      // Update format indicator
+      updateFormatIndicator(format);
+
+      // Show/hide advanced settings
+      updateAdvancedSettings(format);
+
+      // Hide dropdown
+      formatDropdown.classList.add('hidden');
+
+      // Save and re-copy
+      chrome.storage.sync.set({ format: format }, () => {
+        chrome.runtime.sendMessage({ type: 'copy' });
+      });
+    });
+  });
+
+  function updateFormatCheckmark(format) {
+    // Remove all checkmarks
+    formatOptions.forEach(opt => {
+      const check = opt.querySelector('span');
+      if (check) check.textContent = '';
+    });
+
+    // Add checkmark to selected
+    const selectedOption = document.querySelector(`.format-option[data-format="${format}"]`);
+    if (selectedOption) {
+      let check = selectedOption.querySelector('span');
+      if (!check) {
+        check = document.createElement('span');
+        check.className = 'mr-2';
+        selectedOption.insertBefore(check, selectedOption.firstChild);
+      }
+      check.textContent = '✓';
+    }
+  }
+
+  // Set default values for advanced inputs
+  if (delimiterInput) {
+    delimiterInput.value = DEFAULT_SETTINGS.delimiter;
+  }
+  if (customTemplateInput) {
+    customTemplateInput.value = DEFAULT_SETTINGS.customTemplate;
+  }
+
+  // Load saved settings and update if different from defaults
+  chrome.storage.sync.get(['delimiter', 'customTemplate'], function(settings) {
+    // Update delimiter if stored value exists and is different
+    if (delimiterInput && settings.delimiter !== undefined) {
+      const delimiter = settings.delimiter;
+      if (delimiter === '\\t') {
+        delimiterInput.value = '\\t';
+      } else if (delimiter === '\\n') {
+        delimiterInput.value = '\\n';
+      } else if (delimiter === '\\r') {
+        delimiterInput.value = '\\r';
+      } else {
+        delimiterInput.value = delimiter;
+      }
+    }
+
+    // Update custom template if stored value exists and is different
+    if (customTemplateInput && settings.customTemplate !== undefined) {
+      customTemplateInput.value = settings.customTemplate;
+    }
+  });
+
+  // Save delimiter changes and instantly update preview
+  if (delimiterInput) {
+    delimiterInput.addEventListener('input', function(e) {
+      let value = e.target.value;
+      // If empty, default to --
+      if (!value.trim()) {
+        value = '--';
+        this.value = value;
+      }
+      chrome.storage.sync.set({ delimiter: value }, () => {
+        // Instantly re-copy with new delimiter to show user what they'll get
+        chrome.runtime.sendMessage({ type: 'copy' });
+      });
+    });
+  }
+
+  // Save custom template changes and instantly update preview
+  if (customTemplateInput) {
+    customTemplateInput.addEventListener('input', function(e) {
+      chrome.storage.sync.set({ customTemplate: e.target.value }, () => {
+        // Instantly re-copy with new template to show user what they'll get
+        chrome.runtime.sendMessage({ type: 'copy' });
+      });
+    });
+  }
+
 });

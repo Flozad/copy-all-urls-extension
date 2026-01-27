@@ -1,18 +1,28 @@
 /**
  * Utility class for handling Chrome storage operations with fallback and retry mechanisms
  */
+
+// Import centralized defaults (loaded via script tag in HTML files)
+// For background service worker, this will be available via importScripts
+const defaultSettings = typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : {
+    format: 'url_only',
+    mime: 'text/plain',
+    selectedTabsOnly: false,
+    includeAllWindows: false,
+    customTemplate: '',
+    delimiter: '--',
+    smartPaste: true,
+    defaultBehavior: 'copy',
+    autoAction: true,
+    showContextMenu: true,
+    bold: false
+};
+
 const StorageUtil = {
     /**
      * Default settings used as fallback
      */
-    defaultSettings: {
-        format: 'text',
-        delimiter: '\t',
-        customTemplate: '{title} - {url}',
-        selectedTabsOnly: false,
-        includeAllWindows: false,
-        mimeType: 'plaintext'
-    },
+    defaultSettings: defaultSettings,
 
     /**
      * Sets a value in storage with fallback to local storage

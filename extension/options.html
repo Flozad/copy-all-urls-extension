@@ -2,154 +2,768 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Options | URL Manager</title>
+    <title>Settings | Umbrella - Copy All URLs</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Smooth transitions */
+        button, input, select, textarea {
+            transition: all 0.2s;
+        }
+
+        /* ==================== DARK MODE STYLES ==================== */
+
+        /* Manual dark mode */
+        body.theme-dark {
+            background-color: #0f0f0f !important;
+            color: #e5e5e5;
+        }
+
+        body.theme-dark.bg-gray-50 {
+            background-color: #0f0f0f !important;
+        }
+
+        body.theme-dark .bg-white {
+            background-color: #2a2a2a !important;
+        }
+
+        body.theme-dark .bg-gray-100 {
+            background-color: #3a3a3a !important;
+        }
+
+        body.theme-dark .bg-gray-50:not(body) {
+            background-color: #252525 !important;
+        }
+
+        body.theme-dark .bg-gradient-to-r.from-gray-50 {
+            background: linear-gradient(to right, #2a2a2a, #333333) !important;
+        }
+
+        body.theme-dark .text-gray-900 {
+            color: #f5f5f5 !important;
+        }
+
+        body.theme-dark .text-gray-800 {
+            color: #e5e5e5 !important;
+        }
+
+        body.theme-dark .text-gray-700 {
+            color: #d4d4d4 !important;
+        }
+
+        body.theme-dark .text-gray-600 {
+            color: #a3a3a3 !important;
+        }
+
+        body.theme-dark .text-gray-500 {
+            color: #8a8a8a !important;
+        }
+
+        body.theme-dark .border-gray-200 {
+            border-color: #404040 !important;
+        }
+
+        body.theme-dark .border-gray-300 {
+            border-color: #4a4a4a !important;
+        }
+
+        body.theme-dark .bg-blue-50 {
+            background-color: #1e3a5f !important;
+        }
+
+        body.theme-dark .border-blue-200 {
+            border-color: #2563eb !important;
+        }
+
+        body.theme-dark .text-blue-600 {
+            color: #60a5fa !important;
+        }
+
+        body.theme-dark .bg-gradient-to-r.from-blue-50 {
+            background: linear-gradient(to right, #1e3a5f, #2e4a7f) !important;
+        }
+
+        body.theme-dark .bg-gradient-to-r.from-purple-50 {
+            background: linear-gradient(to right, #3d2a5f, #4d3a6f) !important;
+        }
+
+        body.theme-dark .bg-gradient-to-r.from-green-50 {
+            background: linear-gradient(to right, #1e4d3a, #2e5d4a) !important;
+        }
+
+        body.theme-dark .bg-gradient-to-r.from-amber-50 {
+            background: linear-gradient(to right, #4d3d1e, #5d4d2e) !important;
+        }
+
+        body.theme-dark .border-purple-200,
+        body.theme-dark .border-green-200,
+        body.theme-dark .border-amber-200 {
+            border-color: #4a4a4a !important;
+        }
+
+        body.theme-dark .bg-purple-100 {
+            background-color: #4d3a6f !important;
+        }
+
+        body.theme-dark .text-purple-800 {
+            color: #c084fc !important;
+        }
+
+        body.theme-dark .bg-green-100 {
+            background-color: #2e5d4a !important;
+        }
+
+        body.theme-dark .text-green-800 {
+            color: #86efac !important;
+        }
+
+        body.theme-dark .text-green-600 {
+            color: #4ade80 !important;
+        }
+
+        body.theme-dark .text-purple-600 {
+            color: #c084fc !important;
+        }
+
+        body.theme-dark .text-indigo-600 {
+            color: #818cf8 !important;
+        }
+
+        body.theme-dark .text-yellow-600 {
+            color: #fbbf24 !important;
+        }
+
+        body.theme-dark .text-red-600 {
+            color: #f87171 !important;
+        }
+
+        body.theme-dark input[type="text"],
+        body.theme-dark input[type="radio"],
+        body.theme-dark input[type="checkbox"],
+        body.theme-dark textarea,
+        body.theme-dark select {
+            background-color: #2a2a2a !important;
+            border-color: #4a4a4a !important;
+            color: #e5e5e5 !important;
+        }
+
+        body.theme-dark input[type="text"]:focus,
+        body.theme-dark textarea:focus,
+        body.theme-dark select:focus {
+            background-color: #333333 !important;
+        }
+
+        body.theme-dark select,
+        body.theme-dark select option {
+            background-color: #2a2a2a !important;
+            color: #e5e5e5 !important;
+        }
+
+        body.theme-dark select.text-gray-900 {
+            color: #e5e5e5 !important;
+        }
+
+        body.theme-dark code {
+            background-color: #3a3a3a !important;
+            color: #e5e5e5 !important;
+        }
+
+        body.theme-dark .bg-gray-200 {
+            background-color: #3a3a3a !important;
+        }
+
+        body.theme-dark .hover\:bg-gray-300:hover {
+            background-color: #4a4a4a !important;
+        }
+
+        body.theme-dark .hover\:bg-red-100:hover {
+            background-color: #5a2a2a !important;
+        }
+
+        body.theme-dark .bg-red-100 {
+            background-color: #5a2a2a !important;
+        }
+
+        /* Auto mode - follows system preference */
+        @media (prefers-color-scheme: dark) {
+            body.theme-auto {
+                background-color: #0f0f0f !important;
+                color: #e5e5e5;
+            }
+
+            body.theme-auto.bg-gray-50 {
+                background-color: #0f0f0f !important;
+            }
+
+            body.theme-auto .bg-white {
+                background-color: #2a2a2a !important;
+            }
+
+            body.theme-auto .bg-gray-100 {
+                background-color: #3a3a3a !important;
+            }
+
+            body.theme-auto .bg-gray-50:not(body) {
+                background-color: #252525 !important;
+            }
+
+            body.theme-auto .bg-gradient-to-r.from-gray-50 {
+                background: linear-gradient(to right, #2a2a2a, #333333) !important;
+            }
+
+            body.theme-auto .text-gray-900 {
+                color: #f5f5f5 !important;
+            }
+
+            body.theme-auto .text-gray-800 {
+                color: #e5e5e5 !important;
+            }
+
+            body.theme-auto .text-gray-700 {
+                color: #d4d4d4 !important;
+            }
+
+            body.theme-auto .text-gray-600 {
+                color: #a3a3a3 !important;
+            }
+
+            body.theme-auto .text-gray-500 {
+                color: #8a8a8a !important;
+            }
+
+            body.theme-auto .border-gray-200 {
+                border-color: #404040 !important;
+            }
+
+            body.theme-auto .border-gray-300 {
+                border-color: #4a4a4a !important;
+            }
+
+            body.theme-auto .bg-blue-50 {
+                background-color: #1e3a5f !important;
+            }
+
+            body.theme-auto .border-blue-200 {
+                border-color: #2563eb !important;
+            }
+
+            body.theme-auto .text-blue-600 {
+                color: #60a5fa !important;
+            }
+
+            body.theme-auto .bg-gradient-to-r.from-blue-50 {
+                background: linear-gradient(to right, #1e3a5f, #2e4a7f) !important;
+            }
+
+            body.theme-auto .bg-gradient-to-r.from-purple-50 {
+                background: linear-gradient(to right, #3d2a5f, #4d3a6f) !important;
+            }
+
+            body.theme-auto .bg-gradient-to-r.from-green-50 {
+                background: linear-gradient(to right, #1e4d3a, #2e5d4a) !important;
+            }
+
+            body.theme-auto .bg-gradient-to-r.from-amber-50 {
+                background: linear-gradient(to right, #4d3d1e, #5d4d2e) !important;
+            }
+
+            body.theme-auto .border-purple-200,
+            body.theme-auto .border-green-200,
+            body.theme-auto .border-amber-200 {
+                border-color: #4a4a4a !important;
+            }
+
+            body.theme-auto .bg-purple-100 {
+                background-color: #4d3a6f !important;
+            }
+
+            body.theme-auto .text-purple-800 {
+                color: #c084fc !important;
+            }
+
+            body.theme-auto .bg-green-100 {
+                background-color: #2e5d4a !important;
+            }
+
+            body.theme-auto .text-green-800 {
+                color: #86efac !important;
+            }
+
+            body.theme-auto .text-green-600 {
+                color: #4ade80 !important;
+            }
+
+            body.theme-auto .text-purple-600 {
+                color: #c084fc !important;
+            }
+
+            body.theme-auto .text-indigo-600 {
+                color: #818cf8 !important;
+            }
+
+            body.theme-auto .text-yellow-600 {
+                color: #fbbf24 !important;
+            }
+
+            body.theme-auto .text-red-600 {
+                color: #f87171 !important;
+            }
+
+            body.theme-auto input[type="text"],
+            body.theme-auto input[type="radio"],
+            body.theme-auto input[type="checkbox"],
+            body.theme-auto textarea,
+            body.theme-auto select {
+                background-color: #2a2a2a !important;
+                border-color: #4a4a4a !important;
+                color: #e5e5e5 !important;
+            }
+
+            body.theme-auto input[type="text"]:focus,
+            body.theme-auto textarea:focus,
+            body.theme-auto select:focus {
+                background-color: #333333 !important;
+            }
+
+            body.theme-auto select,
+            body.theme-auto select option {
+                background-color: #2a2a2a !important;
+                color: #e5e5e5 !important;
+            }
+
+            body.theme-auto select.text-gray-900 {
+                color: #e5e5e5 !important;
+            }
+
+            body.theme-auto code {
+                background-color: #3a3a3a !important;
+                color: #e5e5e5 !important;
+            }
+
+            body.theme-auto .bg-gray-200 {
+                background-color: #3a3a3a !important;
+            }
+
+            body.theme-auto .hover\:bg-gray-300:hover {
+                background-color: #4a4a4a !important;
+            }
+
+            body.theme-auto .hover\:bg-red-100:hover {
+                background-color: #5a2a2a !important;
+            }
+
+            body.theme-auto .bg-red-100 {
+                background-color: #5a2a2a !important;
+            }
+        }
+    </style>
     <script src="jquery-3.7.1.min.js"></script>
+    <script src="utils/defaults.js"></script>
+    <script src="utils/storage.js"></script>
     <script src="options.js"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-50">
 
-<div class="container mx-auto px-4 py-8">
-    <div class="bg-gray-200 p-6 rounded-lg shadow-lg mb-8">
-        <div class="flex items-center">
-            <img src="icon.png" alt="Icon" class="w-16 h-16 mr-4">
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-xl mb-6 border-2 border-gray-200">
+        <div class="flex items-center justify-center mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="currentColor" class="mr-3 text-gray-900">
+              <path d="m13.13 14.56l1.43-1.43L21 19.57L19.57 21zm4.29-5.73l2.86-2.86C16.33 2 9.93 2 6 5.95c3.91-1.3 8.29-.25 11.42 2.88M5.95 6C2 9.93 2 16.33 5.97 20.28l2.86-2.86C5.7 14.29 4.65 9.91 5.95 6m.02-.04l-.01.01C5.58 9 7.13 12.85 10.26 16L16 10.26c-3.14-3.13-7-4.68-10.03-4.3"/>
+            </svg>
+            <div class="text-left">
+                <h1 class="text-2xl font-bold text-gray-900">Copy All URLs</h1>
+                <p class="text-xs text-gray-600">Settings & Configuration</p>
+            </div>
+        </div>
+        <div class="text-center">
+            <span class="inline-block bg-black text-white px-2.5 py-1 rounded text-xs font-medium" id="version_label">Version</span>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="bg-blue-50 border-2 border-blue-200 p-4 rounded-xl mb-5">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
             <div>
-                <h1 class="text-3xl font-semibold">URL Manager <small class="text-lg">for Chrome</small></h1>
-                <p class="text-sm">Options and Settings</p>
-                <span class="inline-block bg-black text-white px-2 py-1 rounded mt-2" id="version_label">Version</span>
+                <h3 class="font-semibold text-gray-900 mb-1 text-sm">About This Extension</h3>
+                <p class="text-xs text-gray-700 leading-relaxed">
+                    Based on the amazing <strong>Umbrella CopyAllURLs</strong>. Recreated for modern Chrome standards while staying <strong>open source and privacy-focused</strong>.
+                    No data collection, no tracking—just a simple tool that works.
+                </p>
             </div>
         </div>
     </div>
 
-    <div class="text-center text-sm text-gray-500 mb-4">
-      This Chrome extension is based on the amazing Umbrella CopyAllURLs. It has saved us many hours by copying all of those URLs. I want to contribute to it by recreating it to meet the new Google Chrome marketplace standards. I also want to make it Private and Open Source so that people can continue to use it.
-    </div>
+    <!-- Format Settings -->
+    <div class="bg-white border-2 border-gray-200 p-5 rounded-xl mb-5 shadow-sm">
+        <div class="flex items-center mb-3">
+            <svg class="w-5 h-5 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+            </svg>
+            <h2 class="text-lg font-bold text-gray-900">Output Format</h2>
+        </div>
+        <p class="text-xs text-gray-600 mb-4">Choose how you want your URLs to be formatted when copied to the clipboard.</p>
 
-    <h2 class="text-2xl font-bold mb-4">Settings</h2>
-    <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
-        <h3 class="text-xl font-semibold mb-4">Format</h3>
-        <div id="formats" class="space-y-2 mb-6">
-            <label class="flex items-center">
-                <input type="radio" name="format" id="format_text" value="text" class="mr-2"> Text (URL + Title)
+        <div id="formats" class="space-y-2 mb-4">
+            <label class="flex items-center p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+                <input type="radio" name="format" id="format_text" value="text" class="mr-2.5 w-4 h-4">
+                <div>
+                    <span class="font-medium text-gray-900 text-sm">Text (URL + Title)</span>
+                    <p class="text-xs text-gray-600">Simple text format with both URL and page title</p>
+                </div>
             </label>
-            <label class="flex items-center">
-                <input type="radio" name="format" id="format_html" value="html" class="mr-2"> HTML
+            <label class="flex items-center p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+                <input type="radio" name="format" id="format_html" value="html" class="mr-2.5 w-4 h-4">
+                <div>
+                    <span class="font-medium text-gray-900 text-sm">HTML</span>
+                    <p class="text-xs text-gray-600">Clickable links ready for email or rich text editors</p>
+                </div>
             </label>
-            <label class="flex items-center">
-                <input type="radio" name="format" id="format_json" value="json" class="mr-2"> JSON
+            <label class="flex items-center p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+                <input type="radio" name="format" id="format_json" value="json" class="mr-2.5 w-4 h-4">
+                <div>
+                    <span class="font-medium text-gray-900 text-sm">JSON</span>
+                    <p class="text-xs text-gray-600">Structured data format for developers</p>
+                </div>
             </label>
-            <label class="flex items-center">
-                <input type="radio" name="format" id="format_url_only" value="url_only" class="mr-2"> URL Only
+            <label class="flex items-center p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+                <input type="radio" name="format" id="format_url_only" value="url_only" class="mr-2.5 w-4 h-4">
+                <div>
+                    <span class="font-medium text-gray-900 text-sm">URL Only</span>
+                    <p class="text-xs text-gray-600">Just the URLs, one per line</p>
+                </div>
             </label>
-            <label class="flex items-center">
-                <input type="radio" name="format" id="format_delimited" value="delimited" class="mr-2"> Delimited
+            <label class="flex items-center p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+                <input type="radio" name="format" id="format_delimited" value="delimited" class="mr-2.5 w-4 h-4">
+                <div>
+                    <span class="font-medium text-gray-900 text-sm">Delimited</span>
+                    <p class="text-xs text-gray-600">Separate title and URL with a custom delimiter</p>
+                </div>
             </label>
-            <label class="flex items-center">
-                <input type="radio" name="format" id="format_custom" value="custom" class="mr-2"> Custom
+            <label class="flex items-center p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+                <input type="radio" name="format" id="format_custom" value="custom" class="mr-2.5 w-4 h-4">
+                <div>
+                    <span class="font-medium text-gray-900 text-sm">Custom Template</span>
+                    <p class="text-xs text-gray-600">Create your own format using variables</p>
+                </div>
             </label>
         </div>
 
-        <div id="html_advanced" class="hidden bg-gray-100 p-4 rounded-lg mb-6">
-            <h4 class="text-lg font-medium mb-2">Anchor</h4>
-            <div id="anchor_options">
-                <label class="flex items-center mb-2">
-                    <input type="radio" name="anchor" id="anchor_url" value="url" class="mr-2"> Page URL
+        <div id="html_advanced" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-4 border-2 border-blue-200">
+            <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+                HTML Anchor Options
+            </h4>
+            <div id="anchor_options" class="space-y-2">
+                <label class="flex items-center p-2 bg-white rounded cursor-pointer hover:bg-blue-50 transition-colors">
+                    <input type="radio" name="anchor" id="anchor_url" value="url" class="mr-3 w-4 h-4">
+                    <span class="text-sm text-gray-800">Use Page URL as link text</span>
                 </label>
-                <label class="flex items-center">
-                    <input type="radio" name="anchor" id="anchor_title" value="title" class="mr-2"> Page Title
+                <label class="flex items-center p-2 bg-white rounded cursor-pointer hover:bg-blue-50 transition-colors">
+                    <input type="radio" name="anchor" id="anchor_title" value="title" class="mr-3 w-4 h-4">
+                    <span class="text-sm text-gray-800">Use Page Title as link text</span>
                 </label>
             </div>
         </div>
 
-        <div id="custom_advanced" class="hidden bg-gray-100 p-4 rounded-lg mb-6">
-            <h4 class="text-lg font-medium mb-2">Custom Format</h4>
-            <textarea id="custom_template" class="w-full p-2 border border-gray-300 rounded" rows="5"></textarea>
-            <p class="text-sm mt-2">Example: <code class="bg-gray-200 p-1 rounded">&lt;a href=&quot;$url&quot;&gt;$url&lt;/a&gt; - $title - $date&lt;br/&gt;</code></p>
+        <div id="custom_advanced" class="hidden bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg mb-4 border-2 border-purple-200">
+            <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                <svg class="w-4 h-4 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                </svg>
+                Custom Format Template
+            </h4>
+            <textarea id="custom_template" class="w-full px-3 py-2 font-mono text-sm border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none bg-white" rows="4" placeholder="$url - $title"></textarea>
+            <div class="mt-2 bg-white p-2 rounded border border-purple-200">
+                <p class="text-xs font-semibold text-gray-700 mb-2">Available Variables:</p>
+                <div class="flex flex-wrap gap-2 mb-2">
+                    <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-mono">$url</code>
+                    <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-mono">$title</code>
+                    <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-mono">$date</code>
+                </div>
+                <p class="text-xs text-gray-600">Example: <code class="bg-gray-100 px-2 py-0.5 rounded font-mono">&lt;a href="$url"&gt;$title&lt;/a&gt; - $date</code></p>
+            </div>
         </div>
 
-        <div id="delimited_advanced" class="hidden bg-gray-100 p-4 rounded-lg mb-6">
-            <h4 class="text-lg font-medium mb-2">Delimiter Settings</h4>
-            <input type="text" id="delimiter_input" class="w-full p-2 border border-gray-300 rounded" 
-                   placeholder="Enter delimiter (e.g., tab, comma, etc.)" value="\t">
-            <p class="text-sm mt-2">Common delimiters: \t (tab), , (comma), | (pipe)</p>
-        </div>
-
-        <h3 class="text-xl font-semibold mb-4">Miscellaneous</h3>
-        <div id="misc" class="space-y-4">
-            <label class="flex items-center">
-                <input type="checkbox" id="smart_paste" class="mr-2"> Smart Paste
-            </label>
-            <p class="text-gray-600 text-sm">Enable Smart Paste to extract URLs from raw text when you paste content into the extension. This feature attempts to find and process URLs from any text you copy, making it easier to work with large blocks of text that contain URLs.</p>
-
-            <label class="flex items-center">
-                <input type="checkbox" id="selected_tabs_only" class="mr-2"> Selected Tabs Only
-            </label>
-            <p class="text-gray-600 text-sm">When enabled, this option will copy URLs only from the tabs you have highlighted or selected in Chrome. This is useful when you need to copy URLs from specific tabs rather than all open tabs.</p>
-
-            <label class="flex items-center">
-                <input type="checkbox" id="include_all_windows" class="mr-2"> Include All Windows
-            </label>
-            <p class="text-gray-600 text-sm">Enable this setting to copy URLs from all Chrome windows, not just the current one. This is helpful if you work with multiple Chrome windows and want to manage URLs across all of them.</p>
-
-            <label class="flex items-center">
-                <input type="checkbox" id="show_context_menu" class="mr-2"> Show in Context Menu
-            </label>
-            <p class="text-gray-600 text-sm">When enabled, "Copy URLs" and "Paste URLs" options will appear in the right-click context menu.</p>
-
-            <label class="flex items-center">
-                <span class="mr-2">MIME Type:</span>
-                <select id="mime_type" class="p-2 border border-gray-300 rounded">
-                    <option value="plaintext">Plain Text</option>
-                    <option value="html">HTML</option>
-                </select>
-            </label>
-            <p class="text-gray-600 text-sm">Choose whether to copy content as Plain Text or HTML. HTML will allow URLs to be copied as clickable links, which is useful for pasting into email clients or word processors.</p>
-        </div>
-
-        <div class="mt-6 flex space-x-4">
-            <button id="reset_settings" class="bg-red-500 text-white px-4 py-2 rounded">Reset Settings</button>
-            <button id="storage_health_check" class="bg-blue-500 text-white px-4 py-2 rounded">Check Storage Health</button>
-            <button id="repair_storage" class="bg-yellow-500 text-white px-4 py-2 rounded">Repair Storage</button>
-        </div>
-        
-        <div id="storage_status" class="mt-4 p-4 border rounded hidden">
-            <h4 class="font-semibold mb-2">Storage Health Status</h4>
-            <div id="storage_results"></div>
-        </div>
-        
-        <div id="reset_confirmation" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md">
-                <h3 class="text-xl font-bold mb-4">Confirm Reset</h3>
-                <p class="mb-6">Are you sure you want to reset all settings to their default values? This cannot be undone.</p>
-                <div class="flex justify-end space-x-4">
-                    <button id="cancel_reset" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
-                    <button id="confirm_reset" class="bg-red-500 text-white px-4 py-2 rounded">Reset</button>
+        <div id="delimited_advanced" class="hidden bg-gradient-to-r from-green-50 to-teal-50 p-4 rounded-lg mb-4 border-2 border-green-200">
+            <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                <svg class="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                </svg>
+                Delimiter Settings
+            </h4>
+            <input type="text" id="delimiter_input" class="w-full px-3 py-2 font-mono text-sm border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none bg-white"
+                   placeholder="Enter delimiter (e.g., \t, |, --)" value="\t">
+            <div class="mt-2 bg-white p-2 rounded border border-green-200">
+                <p class="text-xs font-semibold text-gray-700 mb-2">Common Delimiters:</p>
+                <div class="flex flex-wrap gap-2">
+                    <code class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-mono">\t (tab)</code>
+                    <code class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-mono">, (comma)</code>
+                    <code class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-mono">| (pipe)</code>
+                    <code class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-mono">-- (dash)</code>
                 </div>
             </div>
         </div>
     </div>
 
-    <h2 class="text-2xl font-bold mb-4">Keyboard Shortcuts</h2>
-    <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
-        <div class="space-y-4">
-            <div class="flex justify-between items-center border-b pb-2">
-                <span class="font-medium">Copy URLs from all open tabs</span>
-                <code class="bg-gray-100 px-2 py-1 rounded">Alt+Shift+C</code>
+    <!-- Miscellaneous Settings -->
+    <div class="bg-white border-2 border-gray-200 p-5 rounded-xl mb-5 shadow-sm">
+        <div class="flex items-center mb-3">
+            <svg class="w-5 h-5 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+            </svg>
+            <h2 class="text-lg font-bold text-gray-900">General Options</h2>
+        </div>
+        <p class="text-xs text-gray-600 mb-4">Customize how the extension behaves to match your workflow.</p>
+        <div id="misc" class="space-y-2.5">
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" id="smart_paste" class="mr-3 w-5 h-5 mt-0.5">
+                    <div>
+                        <div class="flex items-center mb-1">
+                            <svg class="w-4 h-4 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+                                <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+                            </svg>
+                            <span class="font-semibold text-gray-900">Smart Paste</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Automatically extract and clean URLs from raw text, even if they're buried in paragraphs or mixed with other content. Perfect for messy clipboard content!</p>
+                    </div>
+                </label>
             </div>
-            <div class="flex justify-between items-center border-b pb-2">
-                <span class="font-medium">Paste URLs to open them in new tabs</span>
-                <code class="bg-gray-100 px-2 py-1 rounded">Alt+Shift+V</code>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" id="selected_tabs_only" class="mr-3 w-5 h-5 mt-0.5">
+                    <div>
+                        <div class="flex items-center mb-1">
+                            <svg class="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-semibold text-gray-900">Selected Tabs Only</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Only copy URLs from tabs you've highlighted. Great for when you have lots of tabs open but only need specific ones.</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" id="include_all_windows" class="mr-3 w-5 h-5 mt-0.5">
+                    <div>
+                        <div class="flex items-center mb-1">
+                            <svg class="w-4 h-4 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                            </svg>
+                            <span class="font-semibold text-gray-900">Include All Windows</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Gather URLs from every Chrome window you have open. Useful if you organize work across multiple windows.</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" id="show_context_menu" class="mr-3 w-5 h-5 mt-0.5">
+                    <div>
+                        <div class="flex items-center mb-1">
+                            <svg class="w-4 h-4 text-indigo-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/>
+                            </svg>
+                            <span class="font-semibold text-gray-900">Show in Context Menu</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Add quick "Copy URLs" and "Paste URLs" options to your right-click menu for faster access.</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" id="auto_action" class="mr-3 w-5 h-5 mt-0.5">
+                    <div>
+                        <div class="flex items-center mb-1">
+                            <svg class="w-4 h-4 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-semibold text-gray-900">Auto-Copy on Popup Open</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Instantly copy URLs when you click the extension icon. Turn off if you mainly use the paste feature.</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" id="bold_titles" class="mr-3 w-5 h-5 mt-0.5">
+                    <div>
+                        <div class="flex items-center mb-1">
+                            <svg class="w-4 h-4 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-semibold text-gray-900">Bold Titles in HTML</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Make page titles stand out by wrapping them in &lt;strong&gt; tags. Great for emails and documents.</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg border-2 border-gray-300">
+                <label class="flex items-start">
+                    <div class="flex-grow">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-4 h-4 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-semibold text-gray-900">Theme Preference</span>
+                        </div>
+                        <select id="theme_preference" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black focus:outline-none bg-white text-gray-900">
+                            <option value="auto" selected>Auto (Follow System)</option>
+                            <option value="light">Light Mode</option>
+                            <option value="dark">Dark Mode</option>
+                        </select>
+                        <p class="text-sm text-gray-600 mt-2">Choose your preferred color scheme. Auto follows your system settings.</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg border-2 border-gray-300">
+                <label class="flex items-start">
+                    <div class="flex-grow">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-4 h-4 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-semibold text-gray-900">Clipboard Format</span>
+                        </div>
+                        <select id="mime_type" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black focus:outline-none bg-white text-gray-900">
+                            <option value="plaintext" selected>Plain Text</option>
+                            <option value="html">HTML (Clickable Links)</option>
+                        </select>
+                        <p class="text-sm text-gray-600 mt-2">Plain Text works everywhere. HTML creates clickable links in rich text editors and email clients.</p>
+                    </div>
+                </label>
             </div>
         </div>
-        <p class="text-sm text-gray-500 mt-4">
-            <strong>Note:</strong> These keyboard shortcuts work globally when Chrome is active. 
-            You can customize them by going to <code>chrome://extensions/shortcuts</code> in your browser.
-        </p>
+
+        <div class="mt-8 pt-6 border-t-2 border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Maintenance & Troubleshooting</h3>
+            <div class="flex flex-wrap gap-3">
+                <button id="storage_health_check" class="px-5 py-2.5 text-sm font-semibold bg-black text-white hover:bg-gray-800 rounded-lg shadow-sm transition-all hover:shadow-md flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Check Storage Health
+                </button>
+                <button id="repair_storage" class="px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg shadow-sm transition-all hover:shadow-md flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                    </svg>
+                    Repair Storage
+                </button>
+                <button id="reset_settings" class="px-5 py-2.5 text-sm font-semibold bg-gray-200 text-gray-800 hover:bg-red-100 hover:text-red-700 rounded-lg shadow-sm transition-all hover:shadow-md flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                    </svg>
+                    Reset to Defaults
+                </button>
+            </div>
+        </div>
+
+        <div id="storage_status" class="mt-4 p-4 border-2 border-blue-200 rounded-lg hidden bg-blue-50">
+            <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                Storage Health Status
+            </h4>
+            <div id="storage_results" class="text-sm text-gray-700"></div>
+        </div>
+
+        <div id="reset_confirmation" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm border-2 border-gray-200">
+                <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-3">
+                    <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2 text-center">Reset All Settings?</h3>
+                <p class="mb-5 text-gray-600 text-center text-sm">This will restore all settings to their default values. This action cannot be undone.</p>
+                <div class="flex gap-2">
+                    <button id="cancel_reset" class="flex-1 px-4 py-2 text-sm font-semibold bg-gray-200 text-gray-800 hover:bg-gray-300 rounded-lg transition-colors">Cancel</button>
+                    <button id="confirm_reset" class="flex-1 px-4 py-2 text-sm font-semibold bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors">Yes, Reset</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <footer class="mt-8 text-center text-gray-600">
-        <p>&copy; <span id="year_footer"></span> Built by <a href="https://github.com/Flozad" class="text-blue-500 underline">Lozard</a>. All rights reserved.</p>
+    <!-- Keyboard Shortcuts -->
+    <div class="bg-white border-2 border-gray-200 p-5 rounded-xl mb-5 shadow-sm">
+        <div class="flex items-center mb-3">
+            <svg class="w-5 h-5 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"/>
+            </svg>
+            <h2 class="text-lg font-bold text-gray-900">Keyboard Shortcuts</h2>
+        </div>
+        <p class="text-xs text-gray-600 mb-4">Speed up your workflow with keyboard commands.</p>
+
+        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 p-3 rounded-lg border border-amber-200 mb-4">
+            <label class="flex items-center cursor-pointer">
+                <input type="checkbox" id="enable_shortcuts" class="mr-2.5 w-4 h-4" checked>
+                <span class="font-semibold text-gray-900 text-sm">Enable Keyboard Shortcuts</span>
+            </label>
+        </div>
+
+        <div class="space-y-2 mb-4">
+            <div class="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z"/>
+                        <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z"/>
+                    </svg>
+                    <span class="text-gray-900 font-medium">Copy URLs</span>
+                </div>
+                <code class="bg-white px-3 py-1.5 rounded border border-gray-300 font-mono text-sm text-gray-800 font-semibold" id="copyShortcut">Ctrl+Shift+U</code>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+                    </svg>
+                    <span class="text-gray-900 font-medium">Paste URLs</span>
+                </div>
+                <code class="bg-white px-3 py-1.5 rounded border border-gray-300 font-mono text-sm text-gray-800 font-semibold" id="pasteShortcut">Ctrl+Shift+Y</code>
+            </div>
+        </div>
+
+        <button id="customizeShortcuts" class="w-full px-4 py-3 text-sm font-semibold bg-black text-white hover:bg-gray-800 rounded-lg transition-colors flex items-center justify-center">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+            </svg>
+            Customize Shortcuts in Chrome
+        </button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="pt-4 mt-4 border-t border-gray-200">
+        <div class="flex items-center justify-center space-x-2 text-xs text-gray-500">
+            <a href="https://github.com/Flozad" target="_blank" title="View source code on GitHub" class="hover:text-gray-900 hover:underline">GitHub</a>
+            <span>|</span>
+            <a href="https://clasicwebtools.com" target="_blank" title="Visit developer website" class="hover:text-gray-900 hover:underline">My site</a>
+            <span>|</span>
+            <a href="https://twitter.com/lozards" target="_blank" title="Follow on Twitter" class="hover:text-gray-900 hover:underline">Twitter</a>
+        </div>
     </footer>
 </div>
 
