@@ -1,103 +1,26 @@
+// Theme management function
+function applyTheme(theme) {
+    // Remove all theme classes
+    document.body.classList.remove('theme-auto', 'theme-light', 'theme-dark');
+
+    // Add the appropriate theme class
+    if (theme === 'auto') {
+        document.body.classList.add('theme-auto');
+    } else if (theme === 'light') {
+        document.body.classList.add('theme-light');
+    } else if (theme === 'dark') {
+        document.body.classList.add('theme-dark');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const manifestData = chrome.runtime.getManifest();
     document.getElementById('version_label').textContent = manifestData.version;
-  
-    // Must match DEFAULT_SETTINGS in background.js
-    const defaultSettings = {
-        format: 'url_only',
-        anchor: 'url',
-        customTemplate: '',
-        smartPaste: false,
-        includeAllWindows: false,
-        selectedTabsOnly: false,
-        defaultBehavior: 'menu',
-        mimeType: 'plaintext',
-        delimiter: '\t',
-        showContextMenu: true
-    };
 
-    // Storage utility with error handling and fallbacks (duplicated from background.js)
-    const StorageUtil = {
-        async setWithFallback(key, value, retries = 3) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    await new Promise((resolve, reject) => {
-                        chrome.storage.sync.set({ [key]: value }, () => {
-                            if (chrome.runtime.lastError) {
-                                reject(chrome.runtime.lastError);
-                            } else {
-                                resolve();
-                            }
-                        });
-                    });
-                    return true;
-                } catch (error) {
-                    console.warn(`Storage set attempt ${i + 1} failed:`, error);
-                    if (i === retries - 1) {
-                        // Fallback to local storage
-                        try {
-                            await new Promise((resolve, reject) => {
-                                chrome.storage.local.set({ [key]: value }, () => {
-                                    if (chrome.runtime.lastError) {
-                                        reject(chrome.runtime.lastError);
-                                    } else {
-                                        resolve();
-                                    }
-                                });
-                            });
-                            console.log(`Fallback to local storage successful for ${key}`);
-                            return true;
-                        } catch (localError) {
-                            console.error(`Both sync and local storage failed for ${key}:`, localError);
-                            return false;
-                        }
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 100 * (i + 1))); // Exponential backoff
-                }
-            }
-            return false;
-        },
+    // Use centralized defaults from utils/defaults.js (loaded via script tag)
+    const defaultSettings = DEFAULT_SETTINGS;
 
-        async getWithFallback(keys, retries = 3) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    return await new Promise((resolve, reject) => {
-                        chrome.storage.sync.get(keys, (result) => {
-                            if (chrome.runtime.lastError) {
-                                reject(chrome.runtime.lastError);
-                            } else {
-                                resolve(result);
-                            }
-                        });
-                    });
-                } catch (error) {
-                    console.warn(`Storage get attempt ${i + 1} failed:`, error);
-                    if (i === retries - 1) {
-                        // Fallback to local storage
-                        try {
-                            const localResult = await new Promise((resolve, reject) => {
-                                chrome.storage.local.get(keys, (result) => {
-                                    if (chrome.runtime.lastError) {
-                                        reject(chrome.runtime.lastError);
-                                    } else {
-                                        resolve(result);
-                                    }
-                                });
-                            });
-                            console.log('Using fallback local storage');
-                            return localResult;
-                        } catch (localError) {
-                            console.error('Both sync and local storage failed:', localError);
-                            // Return defaults if both storages fail
-                            return typeof keys === 'object' ? keys : defaultSettings;
-                        }
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 100 * (i + 1))); // Exponential backoff
-                }
-            }
-            return typeof keys === 'object' ? keys : defaultSettings;
-        }
-    };
+    // Use centralized StorageUtil from utils/storage.js (loaded via script tag)
   
     // Load settings with error handling
     (async function loadSettings() {
@@ -159,7 +82,25 @@ document.addEventListener('DOMContentLoaded', function() {
             if (showContextMenuElement) {
                 showContextMenuElement.checked = settings.showContextMenu !== false;
             }
-      
+
+            const autoActionElement = document.getElementById('auto_action');
+            if (autoActionElement) {
+                autoActionElement.checked = settings.autoAction !== false;
+            }
+
+            const boldTitlesElement = document.getElementById('bold_titles');
+            if (boldTitlesElement) {
+                boldTitlesElement.checked = settings.bold === true;
+            }
+
+            const themePreferenceElement = document.getElementById('theme_preference');
+            if (themePreferenceElement) {
+                themePreferenceElement.value = settings.theme || defaultSettings.theme;
+            }
+
+            // Apply theme to options page
+            applyTheme(settings.theme || defaultSettings.theme);
+
             toggleAdvancedOptions(settings.format);
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -243,7 +184,30 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-  
+
+    document.getElementById('auto_action').addEventListener('change', async function(e) {
+        const success = await StorageUtil.setWithFallback('autoAction', e.target.checked);
+        if (!success) {
+            showErrorMessage('Failed to save auto-action setting.');
+        }
+    });
+
+    document.getElementById('bold_titles').addEventListener('change', async function(e) {
+        const success = await StorageUtil.setWithFallback('bold', e.target.checked);
+        if (!success) {
+            showErrorMessage('Failed to save bold formatting setting.');
+        }
+    });
+
+    document.getElementById('theme_preference').addEventListener('change', async function(e) {
+        const success = await StorageUtil.setWithFallback('theme', e.target.value);
+        if (!success) {
+            showErrorMessage('Failed to save theme preference.');
+        } else {
+            applyTheme(e.target.value);
+        }
+    });
+
     document.getElementById('reset_settings').addEventListener('click', function() {
         document.getElementById('reset_confirmation').classList.remove('hidden');
     });
@@ -393,7 +357,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const showContextMenuElement = document.getElementById('show_context_menu');
         if (showContextMenuElement) showContextMenuElement.checked = defaultSettings.showContextMenu;
-        
+
+        const autoActionElement = document.getElementById('auto_action');
+        if (autoActionElement) autoActionElement.checked = defaultSettings.autoAction;
+
+        const boldTitlesElement = document.getElementById('bold_titles');
+        if (boldTitlesElement) boldTitlesElement.checked = defaultSettings.bold;
+
         toggleAdvancedOptions(defaultSettings.format);
     }
     
@@ -630,6 +600,52 @@ document.addEventListener('DOMContentLoaded', function() {
         
         resultsDiv.innerHTML = html;
         statusDiv.classList.remove('hidden');
+    }
+
+    // Keyboard Shortcuts Section
+    // Fetch actual shortcuts from Chrome
+    const copyShortcutEl = document.getElementById('copyShortcut');
+    const pasteShortcutEl = document.getElementById('pasteShortcut');
+
+    // Load actual keyboard shortcuts from Chrome
+    chrome.commands.getAll(function(commands) {
+        commands.forEach(function(command) {
+            if (command.name === 'copy-urls' && copyShortcutEl) {
+                copyShortcutEl.textContent = command.shortcut || 'Not set';
+            } else if (command.name === 'paste-urls' && pasteShortcutEl) {
+                pasteShortcutEl.textContent = command.shortcut || 'Not set';
+            }
+        });
+    });
+
+    // Load enable_shortcuts setting
+    const enableShortcutsEl = document.getElementById('enable_shortcuts');
+    if (enableShortcutsEl) {
+        chrome.storage.sync.get(['enableShortcuts'], function(result) {
+            enableShortcutsEl.checked = result.enableShortcuts !== false; // Default to true
+        });
+
+        // Save enable_shortcuts setting
+        enableShortcutsEl.addEventListener('change', async function() {
+            const success = await StorageUtil.setWithFallback('enableShortcuts', this.checked);
+            if (!success) {
+                showErrorMessage('Failed to save keyboard shortcuts setting.');
+            }
+        });
+    }
+
+    // Customize shortcuts button
+    const customizeShortcutsBtn = document.getElementById('customizeShortcuts');
+    if (customizeShortcutsBtn) {
+        customizeShortcutsBtn.addEventListener('click', function() {
+            chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+        });
+    }
+
+    // Set footer year
+    const yearFooter = document.getElementById('year_footer');
+    if (yearFooter) {
+        yearFooter.textContent = new Date().getFullYear();
     }
   });
   

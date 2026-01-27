@@ -12,3 +12,5 @@ Thumbs.db
 # Ignore Chrome extension packaging files
 *.zip
 *.crx
+
+.claude

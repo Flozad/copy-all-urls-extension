@@ -1,5 +1,64 @@
 # Changelog
 
+## [1.10.1] - 2026-01-27
+
+### Fixed
+- **Critical**: Clipboard reading now properly accesses HTML content from copied links
+  - Previously only read plain text, missing URLs from HTML `<a>` tags (Twitter, websites, etc.)
+  - Now uses `navigator.clipboard.read()` to check for `text/html` MIME type first
+  - Fixed all clipboard reading locations: popup paste, context menu, keyboard shortcuts, and action button
+- Improved HTML detection with robust regex pattern
+  - Now handles various href formats: `href="..."`, `href='...'`, `href=...`
+  - Case-insensitive matching for better compatibility
+- Enhanced URL extraction regex to handle complex URLs with special characters
+- Better cleanup of extracted URLs (removes trailing punctuation, quotes, brackets)
+
+### Added
+- HTML clipboard content is now properly extracted from Twitter and other websites
+- Fallback chain for clipboard reading: HTML → Plain Text → readText() for maximum compatibility
+- Debug logging to help troubleshoot clipboard reading issues
+- Test file `test-clipboard.html` for inspecting clipboard MIME types
+
+### Changed
+- All clipboard reading operations now prioritize HTML content over plain text
+- More informative error messages when URL extraction fails
+
+## [1.10.0] - 2026-01-26
+
+### Fixed
+- **Critical**: Settings persistence bug due to mismatched defaults across files
+- **Critical**: Keyboard shortcuts completely redesigned with simpler, more reliable implementation
+- Race conditions between auto-copy and keyboard shortcuts eliminated
+- Settings now persist correctly across browser restarts
+
+### Added
+- Auto-copy configuration setting in options page (can now disable auto-copy on popup open)
+- Context menu toggle option - hide "Copy URLs" and "Paste URLs" from right-click menu
+- Bold formatting option for HTML format - wrap titles in `<strong>` tags
+- Enhanced paste parsing with support for:
+  - Markdown links `[title](url)`
+  - Quoted URLs `"url"` or `'url'`
+  - URL-encoded characters (automatic decoding)
+  - Better handling of trailing punctuation
+- Clean shadcn-style UI with Tailwind CSS
+- Smooth message transitions with fade in/out effects
+- Centralized default settings system (utils/defaults.js)
+
+### Changed
+- Keyboard shortcuts now use direct clipboard access via content script injection
+- Removed complex timestamp/localStorage workaround for keyboard shortcuts
+- Replaced notification spam with clean badge feedback (✓, !, ∅, ⏳)
+- Improved popup UI with better visual hierarchy and spacing
+- All message displays now use smooth opacity transitions
+- Better error messages with success/error styling
+
+### Technical
+- Created centralized defaults file to prevent settings mismatch bugs
+- Unified storage handling across all extension files
+- Simplified keyboard shortcut implementation (removed 70+ lines of complex code)
+- Context menus now dynamically created/removed based on user preference
+- Improved code organization and maintainability
+
 ## [1.9.3] - 2025-08-18
 
 ### Fixed
