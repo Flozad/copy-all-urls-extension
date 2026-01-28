@@ -1,6 +1,6 @@
 {
   "name": "Umbrella - Copy All URLs",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "manifest_version": 3,
   "description": "Save and restore browser tabs instantly. Copy URLs in multiple formats, paste to reopen tabs.",
   "icons": {
@@ -18,8 +18,7 @@
     "activeTab",
     "clipboardRead",
     "clipboardWrite",
-    "contextMenus",
-    "notifications"
+    "contextMenus"
   ],
   "background": {
     "service_worker": "background.js"

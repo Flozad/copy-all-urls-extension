@@ -356,20 +356,28 @@ const Action = {
       if (urlList.length === 0) {
         const errorMsg = smartPaste
           ? "No valid URLs found. Try disabling Smart Paste in settings if the content has a specific format."
-          : "No valid URLs found in the provided content. Make sure the content contains URLs starting with http:// or https://";
+          : "No valid URLs found in the provided content.";
         console.error('URL extraction failed. Content format might not be recognized.');
         chrome.runtime.sendMessage({ type: "paste", errorMsg });
         return;
       }
 
-      // Validate URLs before opening and filter out restricted URLs
+      // Validate URLs before opening
+      // When Smart Paste is disabled, allow ALL URL schemes (chrome://, file://, etc.)
+      // When Smart Paste is enabled, filter out restricted URLs for safety
       const validUrls = urlList.filter(url => {
         try {
           new URL(url);
-          // Also check if it's not a restricted URL
-          const isValid = !isRestrictedUrl(url);
-          console.log(`URL validation for ${url}: ${isValid}`);
-          return isValid;
+          // Only filter restricted URLs if Smart Paste is enabled
+          if (smartPaste) {
+            const isValid = !isRestrictedUrl(url);
+            console.log(`URL validation for ${url}: ${isValid} (Smart Paste enabled)`);
+            return isValid;
+          } else {
+            // Smart Paste disabled - allow all valid URLs including chrome://, file://, etc.
+            console.log(`URL validation for ${url}: true (Smart Paste disabled - all schemes allowed)`);
+            return true;
+          }
         } catch (e) {
           console.log(`URL validation failed for ${url}:`, e.message);
           return false;
@@ -379,7 +387,10 @@ const Action = {
       console.log('Valid URLs after filtering:', validUrls);
 
       if (validUrls.length === 0) {
-        chrome.runtime.sendMessage({ type: "paste", errorMsg: "No valid URLs found. URLs must start with http:// or https:// and cannot be restricted URLs like chrome:// or chrome-extension://" });
+        const errorMsg = smartPaste
+          ? "No valid URLs found. URLs must start with http:// or https:// and cannot be restricted URLs like chrome:// or chrome-extension://"
+          : "No valid URLs found. Make sure the URLs are properly formatted.";
+        chrome.runtime.sendMessage({ type: "paste", errorMsg });
         return;
       }
 
