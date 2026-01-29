@@ -13,9 +13,17 @@ export default function HomePage() {
           formats, paste to reopen tabs.
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap">
+          <a
+            href="https://chromewebstore.google.com/detail/umbrella-copy-all-urls/iodlbflkegnangnopebgjojlgmcbbpdh"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-lg bg-black px-8 py-3.5 text-sm font-medium text-white hover:bg-gray-800 transition-all hover:scale-105 active:scale-95"
+          >
+            Install Extension
+          </a>
           <Link
             href="/docs"
-            className="inline-flex items-center justify-center rounded-lg bg-black px-8 py-3.5 text-sm font-medium text-white hover:bg-gray-800 transition-all hover:scale-105 active:scale-95"
+            className="inline-flex items-center justify-center rounded-lg border-2 border-black px-8 py-3.5 text-sm font-medium hover:bg-black hover:text-white transition-all hover:scale-105 active:scale-95"
           >
             Get Started
           </Link>
