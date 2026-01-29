@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.11.0] - 2026-01-29
+
+### Fixed
+- **CRITICAL**: Auto-copy was overwriting clipboard before paste operations
+  - When user opened popup to paste URLs, auto-copy would run first
+  - This overwrote the user's copied URLs with current tab URLs
+  - Result: Pasting would duplicate current tabs instead of user's URLs
+  - Fix: Disabled auto-copy by default (users can re-enable in settings)
+
+### Changed
+- `autoAction` default changed from `true` to `false`
+- Users must now click "Copy URLs" button or enable auto-copy in settings
+- Prevents unexpected clipboard overwrites
+
+## [1.10.5] - 2026-01-29
+
+### Fixed
+- **CRITICAL**: Restored v1.5.1 paste logic - NO validation when Smart Paste OFF
+  - Removed ALL URL validation when Smart Paste is disabled
+  - Now directly opens whatever is on each line (chrome://, file://, etc.)
+  - Matches original v1.5.1 working behavior exactly
+
+### Changed
+- Simplified paste function from 130+ lines to 30 lines
+- Removed unnecessary HTML extraction, URL validation, and format parsing
+- Smart Paste OFF = split by newline and open tabs, nothing else
+
 ## [1.10.4] - 2026-01-29
 
 ### Fixed
