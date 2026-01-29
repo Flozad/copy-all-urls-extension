@@ -22,29 +22,31 @@ export default function DocsLayout({
 }) {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="flex gap-8 py-8">
+      <div className="flex gap-12 py-12">
         {/* Sidebar */}
         <aside className="hidden w-64 shrink-0 lg:block">
-          <nav className="sticky top-8 space-y-8">
+          <nav className="sticky top-24 space-y-8">
             {navigation.map((item) => (
               <div key={item.name}>
                 {item.href ? (
                   <Link
                     href={item.href}
-                    className="font-medium hover:underline"
+                    className="text-sm font-semibold hover:underline underline-offset-4 transition-all"
                   >
                     {item.name}
                   </Link>
                 ) : (
-                  <div className="space-y-2">
-                    <p className="font-medium">{item.name}</p>
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {item.name}
+                    </p>
                     {item.children && (
-                      <ul className="space-y-2 border-l border-gray-200 pl-4">
+                      <ul className="space-y-2.5 border-l-2 border-gray-100 pl-4 hover:border-gray-200 transition-colors">
                         {item.children.map((child) => (
                           <li key={child.name}>
                             <Link
                               href={child.href}
-                              className="text-sm text-gray-600 hover:text-black hover:underline"
+                              className="block text-sm text-gray-600 hover:text-black hover:translate-x-0.5 transition-all"
                             >
                               {child.name}
                             </Link>
@@ -60,8 +62,8 @@ export default function DocsLayout({
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 min-w-0">
-          <article className="prose prose-slate max-w-none prose-headings:font-bold prose-a:text-black prose-a:underline hover:prose-a:no-underline prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200">
+        <div className="flex-1 min-w-0 max-w-3xl">
+          <article className="prose prose-lg prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-5xl prose-h1:mb-8 prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-p:leading-relaxed prose-a:text-black prose-a:underline prose-a:decoration-2 prose-a:underline-offset-4 hover:prose-a:decoration-gray-400 prose-a:transition-colors prose-pre:bg-gray-50 prose-pre:border-2 prose-pre:border-gray-200 prose-pre:rounded-xl prose-code:text-black prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none">
             {children}
           </article>
         </div>

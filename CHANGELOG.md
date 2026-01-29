@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.10.4] - 2026-01-29
+
+### Fixed
+- **CRITICAL**: Completely fixed non-http/https URL pasting (#16)
+  - Simplified Smart Paste OFF logic to match original v1.5.1 behavior
+  - When Smart Paste disabled: treat each line as a URL, no parsing
+  - Removed 80 lines of complex format parsing that was breaking URL extraction
+  - Now works with ALL URL schemes: chrome://, file://, about:, data:, etc.
+
+### Changed
+- Smart Paste OFF now uses dead-simple v1.5.1 approach:
+  - Split content by newlines
+  - Trim each line
+  - Use each line as-is as a URL
+  - No format detection, no pattern matching, no parsing
+
+### Technical
+- Removed markdown link parsing when Smart Paste OFF
+- Removed title:URL parsing when Smart Paste OFF
+- Removed delimited format parsing when Smart Paste OFF
+- Removed custom template parsing complexity
+- Restored original simple behavior from v1.5.1
+
 ## [1.10.3] - 2026-01-29
 
 ### Fixed

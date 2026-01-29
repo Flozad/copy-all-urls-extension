@@ -8,10 +8,20 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'monospace'],
+      },
       typography: {
         DEFAULT: {
           css: {
             maxWidth: 'none',
+            '--tw-prose-body': 'rgb(0 0 0)',
+            '--tw-prose-headings': 'rgb(0 0 0)',
+            '--tw-prose-links': 'rgb(0 0 0)',
+            '--tw-prose-bold': 'rgb(0 0 0)',
+            '--tw-prose-code': 'rgb(0 0 0)',
+            '--tw-prose-pre-bg': 'rgb(250 250 250)',
           },
         },
       },
