@@ -310,16 +310,16 @@ const Action = {
           }
         } else {
           // When Smart Paste is disabled, accept all URL schemes
-          // URL pattern: matches http://, https://, chrome://, file://, etc.
+          // URL pattern: matches http://, https://, chrome://, file://, about:, data:, etc.
           const urlSchemePattern = smartPaste
             ? /^https?:\/\//  // Only http/https when Smart Paste enabled
-            : /^[a-z][a-z0-9+.-]*:\/\//i;  // All URL schemes when Smart Paste disabled
+            : /^[a-z][a-z0-9+.-]*:/i;  // All URL schemes when Smart Paste disabled (with or without //)
 
           urlList = lines.map(line => {
             // Check for markdown link format first
             const markdownPattern = smartPaste
               ? /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/  // Only http/https
-              : /\[([^\]]+)\]\(([a-z][a-z0-9+.-]*:\/\/[^\s)]+)\)/i;  // All schemes
+              : /\[([^\]]+)\]\(([a-z][a-z0-9+.-]*:[^\s)]+)\)/i;  // All schemes
             const markdownMatch = line.match(markdownPattern);
             if (markdownMatch) {
               return markdownMatch[2];
@@ -333,7 +333,7 @@ const Action = {
             // Check for "Title: URL" format
             const titleUrlPattern = smartPaste
               ? /:\s*(https?:\/\/[^\s]+)/  // Only http/https
-              : /:\s*([a-z][a-z0-9+.-]*:\/\/[^\s]+)/i;  // All schemes
+              : /:\s*([a-z][a-z0-9+.-]*:[^\s]+)/i;  // All schemes
             const titleMatch = line.match(titleUrlPattern);
             if (titleMatch) {
               return titleMatch[1].trim();
