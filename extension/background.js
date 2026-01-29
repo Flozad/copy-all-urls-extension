@@ -309,29 +309,41 @@ const Action = {
             console.error('Invalid custom template pattern:', e);
           }
         } else {
+          // When Smart Paste is disabled, accept all URL schemes
+          // URL pattern: matches http://, https://, chrome://, file://, etc.
+          const urlSchemePattern = smartPaste
+            ? /^https?:\/\//  // Only http/https when Smart Paste enabled
+            : /^[a-z][a-z0-9+.-]*:\/\//i;  // All URL schemes when Smart Paste disabled
+
           urlList = lines.map(line => {
             // Check for markdown link format first
-            const markdownMatch = line.match(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/);
+            const markdownPattern = smartPaste
+              ? /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/  // Only http/https
+              : /\[([^\]]+)\]\(([a-z][a-z0-9+.-]*:\/\/[^\s)]+)\)/i;  // All schemes
+            const markdownMatch = line.match(markdownPattern);
             if (markdownMatch) {
               return markdownMatch[2];
             }
 
             // Check for direct URL
-            if (line.startsWith('http://') || line.startsWith('https://')) {
+            if (urlSchemePattern.test(line.trim())) {
               return line.trim();
             }
 
             // Check for "Title: URL" format
-            if (line.includes(': http')) {
-              const match = line.match(/: (https?:\/\/[^\s]+)/);
-              return match ? match[1].trim() : null;
+            const titleUrlPattern = smartPaste
+              ? /:\s*(https?:\/\/[^\s]+)/  // Only http/https
+              : /:\s*([a-z][a-z0-9+.-]*:\/\/[^\s]+)/i;  // All schemes
+            const titleMatch = line.match(titleUrlPattern);
+            if (titleMatch) {
+              return titleMatch[1].trim();
             }
 
             // Check for delimited format
             if (line.includes(delimiter)) {
               const parts = line.split(delimiter);
               for (const part of parts) {
-                if (part.trim().startsWith('http://') || part.trim().startsWith('https://')) {
+                if (urlSchemePattern.test(part.trim())) {
                   return part.trim();
                 }
               }
