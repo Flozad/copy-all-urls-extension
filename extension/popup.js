@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Auto-copy on popup open (if enabled in settings)
   try {
     const settings = await chrome.storage.sync.get(['autoAction']);
-    const autoAction = settings.autoAction !== false; // Default to true
+    const autoAction = settings.autoAction === true; // Default to FALSE - no auto-copy
 
     if (autoAction) {
       // Wait a short moment for the popup to fully initialize
@@ -59,11 +59,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   } catch (error) {
     console.error('Error checking auto-action setting:', error);
-    // Default to auto-copy on error
-    setTimeout(() => {
-      chrome.runtime.sendMessage({ type: 'copy' }, (response) => {
-      });
-    }, 100);
+    // DO NOT auto-copy on error - let user click button manually
   }
 
   // Paste source management
