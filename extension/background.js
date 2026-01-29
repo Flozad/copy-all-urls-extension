@@ -227,18 +227,12 @@ const Action = {
   },
 
   paste: function (content) {
-    chrome.storage.sync.get(['format', 'customTemplate', 'smartPaste', 'delimiter'], function (items) {
-      const format = items['format'] || 'text';
+    chrome.storage.sync.get(['smartPaste'], function (items) {
       const smartPaste = items['smartPaste'] === true;
-      const delimiter = items['delimiter'] || '\t';
-      const customTemplate = items['customTemplate'] || '';
 
-      console.log('========== PASTE FUNCTION CALLED ==========');
+      console.log('========== PASTE FUNCTION (v1.5.1 STYLE) ==========');
       console.log('SmartPaste enabled:', smartPaste);
-      console.log('Format:', format);
-      console.log('Content length:', content ? content.length : 0);
       console.log('Content:', content);
-      console.log('Storage items:', items);
 
       if (!content) {
         console.error('No content provided for paste function');
@@ -248,105 +242,30 @@ const Action = {
 
       let urlList = [];
 
-      // ALWAYS check for HTML first, regardless of smartPaste setting
-      // More robust HTML detection: check for any href attribute
-      const hasHtmlTags = content.includes('<') && content.includes('>');
-      const hasHrefAttribute = /href\s*=\s*["']/i.test(content);
-
-      if (hasHtmlTags && hasHrefAttribute) {
-        // HTML content - extract all URLs from href attributes
-        // This regex handles various href formats: href="...", href='...', href=...
-        const htmlUrlPattern = /href\s*=\s*["']([^"']+)["']|href\s*=\s*([^\s>]+)/gi;
-        const matches = [...content.matchAll(htmlUrlPattern)];
-        urlList = matches.map(match => (match[1] || match[2]).trim());
-        console.log('HTML format detected, extracted URLs:', urlList);
-      } else if (smartPaste) {
-        // Enhanced URL extraction with improved regex
-        // This regex handles URLs more robustly, including query params and fragments
-        const urlPattern = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/g;
-        const matches = content.match(urlPattern);
-
-        if (matches) {
-          urlList = matches.map(url => {
-            // Remove trailing punctuation that's not part of the URL
-            url = url.replace(/[.,;:!?)"'\]]+$/, '');
-            // Remove any leading/trailing quotes or brackets
-            url = url.replace(/^["'<\[]+|["'>\]]+$/g, '');
-            try {
-              // Decode URL-encoded characters
-              return decodeURIComponent(url);
-            } catch (e) {
-              // If decoding fails, return cleaned URL
-              return url;
-            }
-          });
-        }
-
-        console.log('Smart paste extracted URLs:', urlList);
+      if (smartPaste) {
+        // Extract URLs using regex (only http/https for security)
+        const urlPattern = /https?:\/\/[^\s"']+/g;
+        urlList = content.match(urlPattern) || [];
+        urlList = urlList.map(url => url.trim().replace(/^["']|["']$/g, ''));
+        console.log('Smart Paste ON - extracted http/https URLs:', urlList);
       } else {
-        // Smart Paste is disabled - treat each line as a separate URL (simple, like v1.5.1)
-        // No format parsing, no pattern matching - just split by newline and use as-is
-        console.log('Smart Paste disabled - treating each line as a URL');
-        urlList = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-        console.log('Extracted lines as URLs:', urlList);
+        // Treat each line as a separate URL - NO VALIDATION!
+        urlList = content.split('\n').map(url => url.trim()).filter(url => url.length > 0);
+        console.log('Smart Paste OFF - using each line as-is:', urlList);
       }
-
-      console.log('Extracted URL list:', urlList);
 
       if (urlList.length === 0) {
-        const errorMsg = smartPaste
-          ? "No valid URLs found. Try disabling Smart Paste in settings if the content has a specific format."
-          : "No valid URLs found in the provided content.";
-        console.error('URL extraction failed. Content format might not be recognized.');
-        chrome.runtime.sendMessage({ type: "paste", errorMsg });
+        chrome.runtime.sendMessage({ type: "paste", errorMsg: "No URL found in the provided content" });
         return;
       }
 
-      // Validate URLs before opening
-      // When Smart Paste is disabled, allow ALL URL schemes (chrome://, file://, etc.)
-      // When Smart Paste is enabled, filter out restricted URLs for safety
-      const validUrls = urlList.filter(url => {
-        try {
-          new URL(url);
-          // Only filter restricted URLs if Smart Paste is enabled
-          if (smartPaste) {
-            const isValid = !isRestrictedUrl(url);
-            console.log(`URL validation for ${url}: ${isValid} (Smart Paste enabled)`);
-            return isValid;
-          } else {
-            // Smart Paste disabled - allow all valid URLs including chrome://, file://, etc.
-            console.log(`URL validation for ${url}: true (Smart Paste disabled - all schemes allowed)`);
-            return true;
-          }
-        } catch (e) {
-          console.log(`URL validation failed for ${url}:`, e.message);
-          return false;
-        }
-      });
-
-      console.log('Valid URLs after filtering:', validUrls);
-
-      if (validUrls.length === 0) {
-        const errorMsg = smartPaste
-          ? "No valid URLs found. URLs must start with http:// or https:// and cannot be restricted URLs like chrome:// or chrome-extension://"
-          : "No valid URLs found. Make sure the URLs are properly formatted.";
-        chrome.runtime.sendMessage({ type: "paste", errorMsg });
-        return;
-      }
-
-      console.log(`========== OPENING ${validUrls.length} TABS ==========`);
-      validUrls.forEach(url => {
+      console.log(`Opening ${urlList.length} tabs...`);
+      urlList.forEach(url => {
         console.log(`Creating tab for: ${url}`);
-        chrome.tabs.create({ url }, (tab) => {
-          if (chrome.runtime.lastError) {
-            console.error(`Failed to create tab for ${url}:`, chrome.runtime.lastError);
-          } else {
-            console.log(`Successfully created tab ${tab.id} for: ${url}`);
-          }
-        });
+        chrome.tabs.create({ url });
       });
 
-      chrome.runtime.sendMessage({ type: "paste", success: true, urlCount: validUrls.length });
+      chrome.runtime.sendMessage({ type: "paste", success: true, urlCount: urlList.length });
     });
   }
 };
