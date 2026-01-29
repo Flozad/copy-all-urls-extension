@@ -233,10 +233,12 @@ const Action = {
       const delimiter = items['delimiter'] || '\t';
       const customTemplate = items['customTemplate'] || '';
 
-      console.log('Paste function called');
+      console.log('========== PASTE FUNCTION CALLED ==========');
       console.log('SmartPaste enabled:', smartPaste);
+      console.log('Format:', format);
       console.log('Content length:', content ? content.length : 0);
-      console.log('Content preview:', content ? content.substring(0, 200) : 'empty');
+      console.log('Content:', content);
+      console.log('Storage items:', items);
 
       if (!content) {
         console.error('No content provided for paste function');
@@ -332,10 +334,16 @@ const Action = {
         return;
       }
 
-      console.log(`Opening ${validUrls.length} tabs...`);
+      console.log(`========== OPENING ${validUrls.length} TABS ==========`);
       validUrls.forEach(url => {
         console.log(`Creating tab for: ${url}`);
-        chrome.tabs.create({ url });
+        chrome.tabs.create({ url }, (tab) => {
+          if (chrome.runtime.lastError) {
+            console.error(`Failed to create tab for ${url}:`, chrome.runtime.lastError);
+          } else {
+            console.log(`Successfully created tab ${tab.id} for: ${url}`);
+          }
+        });
       });
 
       chrome.runtime.sendMessage({ type: "paste", success: true, urlCount: validUrls.length });
