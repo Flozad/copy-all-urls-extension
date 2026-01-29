@@ -282,85 +282,11 @@ const Action = {
 
         console.log('Smart paste extracted URLs:', urlList);
       } else {
-        // Parse content based on format
-        const lines = content.split(/\n|<br\s*\/?>/i).map(line => line.trim()).filter(line => line.length > 0);
-
-        if (format === 'custom' && customTemplate) {
-          // Convert template to regex pattern
-          let pattern = customTemplate
-            .replace(/\$/g, '\\$')  // Escape $ in template
-            .replace(/\$url/g, '(https?:\\/\\/[^\\s]+)')  // Capture URL
-            .replace(/\$title/g, '([^\\n]+)')  // Capture title
-            .replace(/\$date/g, '\\d{4}-\\d{2}-\\d{2}');  // Match date format
-
-          try {
-            const regex = new RegExp(pattern, 'g');
-            lines.forEach(line => {
-              const match = line.match(regex);
-              if (match) {
-                // Extract URL from the match based on template
-                const urlMatch = line.match(/(https?:\/\/[^\s]+)/);
-                if (urlMatch) {
-                  urlList.push(urlMatch[1].trim());
-                }
-              }
-            });
-          } catch (e) {
-            console.error('Invalid custom template pattern:', e);
-          }
-        } else {
-          // When Smart Paste is disabled, accept all URL schemes
-          // URL pattern: matches http://, https://, chrome://, file://, about:, data:, etc.
-          const urlSchemePattern = smartPaste
-            ? /^https?:\/\//  // Only http/https when Smart Paste enabled
-            : /^[a-z][a-z0-9+.-]*:/i;  // All URL schemes when Smart Paste disabled (with or without //)
-
-          urlList = lines.map(line => {
-            // Check for markdown link format first
-            const markdownPattern = smartPaste
-              ? /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/  // Only http/https
-              : /\[([^\]]+)\]\(([a-z][a-z0-9+.-]*:[^\s)]+)\)/i;  // All schemes
-            const markdownMatch = line.match(markdownPattern);
-            if (markdownMatch) {
-              return markdownMatch[2];
-            }
-
-            // Check for direct URL
-            if (urlSchemePattern.test(line.trim())) {
-              return line.trim();
-            }
-
-            // Check for "Title: URL" format
-            const titleUrlPattern = smartPaste
-              ? /:\s*(https?:\/\/[^\s]+)/  // Only http/https
-              : /:\s*([a-z][a-z0-9+.-]*:[^\s]+)/i;  // All schemes
-            const titleMatch = line.match(titleUrlPattern);
-            if (titleMatch) {
-              return titleMatch[1].trim();
-            }
-
-            // Check for delimited format
-            if (line.includes(delimiter)) {
-              const parts = line.split(delimiter);
-              for (const part of parts) {
-                if (urlSchemePattern.test(part.trim())) {
-                  return part.trim();
-                }
-              }
-            }
-
-            return null;
-          }).filter(url => url !== null);
-
-          // Decode URLs
-          urlList = urlList.map(url => {
-            try {
-              return decodeURIComponent(url);
-            } catch (e) {
-              return url;
-            }
-          });
-        }
+        // Smart Paste is disabled - treat each line as a separate URL (simple, like v1.5.1)
+        // No format parsing, no pattern matching - just split by newline and use as-is
+        console.log('Smart Paste disabled - treating each line as a URL');
+        urlList = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        console.log('Extracted lines as URLs:', urlList);
       }
 
       console.log('Extracted URL list:', urlList);
