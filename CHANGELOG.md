@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.10.3] - 2026-01-29
+
+### Fixed
+- **Critical**: Complete fix for non-http/https URL pasting when Smart Paste disabled (#16)
+  - Fixed URL extraction logic to accept all URL schemes (chrome://, file://, about:, data:, etc.)
+  - Fixed URL validation to only filter restricted URLs when Smart Paste enabled
+  - Pattern now matches URLs with or without :// (e.g., about:blank, data:text/html,...)
+  - Restores v1.5.1 behavior where all URL types can be pasted with Smart Paste disabled
+
+### Changed
+- URL extraction patterns now conditional based on Smart Paste setting:
+  - Smart Paste ON: Only http/https URLs extracted (security)
+  - Smart Paste OFF: All valid URL schemes extracted
+- Improved regex patterns to handle edge cases (about:, data:, mailto:, tel:, ftp:, etc.)
+- Better error messages that reflect current Smart Paste setting
+
+### Technical
+- Added conditional URL scheme pattern matching
+- Updated markdown link, title:URL, and delimited format parsers
+- Comprehensive URL scheme support: chrome://, chrome-extension://, file://, about:, data:, edge://, view-source:, ftp://, mailto:, tel:
+
+## [1.10.2] - 2026-01-28
+
+### Fixed (Incomplete - superseded by 1.10.3)
+- Partial fix for URL validation when Smart Paste disabled
+- Note: This version did not fully resolve issue #16
+
 ## [1.10.1] - 2026-01-27
 
 ### Fixed
