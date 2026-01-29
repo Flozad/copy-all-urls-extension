@@ -18,7 +18,7 @@ const DEFAULT_SETTINGS = {
 
   // UI behavior
   defaultBehavior: 'copy',
-  autoAction: true,  // Auto-copy when popup opens
+  autoAction: false,  // Auto-copy when popup opens (DISABLED to prevent clipboard overwrite)
   theme: 'auto',  // Theme preference: 'auto', 'light', or 'dark'
 
   // Context menu
