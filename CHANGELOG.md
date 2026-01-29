@@ -7,10 +7,13 @@
   - When user opened popup to paste URLs, auto-copy would run first
   - This overwrote the user's copied URLs with current tab URLs
   - Result: Pasting would duplicate current tabs instead of user's URLs
-  - Fix: Disabled auto-copy by default (users can re-enable in settings)
+  - Fix: Completely disabled auto-copy by default
+  - Removed fallback auto-copy in error handler that was bypassing settings
 
 ### Changed
 - `autoAction` default changed from `true` to `false`
+- Removed auto-copy fallback in error handler
+- Changed autoAction check from `!== false` to `=== true` for explicit opt-in
 - Users must now click "Copy URLs" button or enable auto-copy in settings
 - Prevents unexpected clipboard overwrites
 
