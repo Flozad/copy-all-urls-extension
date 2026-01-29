@@ -1,0 +1,73 @@
+export const metadata = {
+  title: 'Keyboard Shortcuts',
+  description: 'Quick access to copy and paste functions',
+};
+
+# Keyboard Shortcuts
+
+Quick access to copy and paste functions using keyboard shortcuts.
+
+## Default Shortcuts
+
+Umbrella comes with two keyboard shortcuts for quick access:
+
+### Copy URLs
+- **Windows/Linux**: `Ctrl+Shift+U`
+- **Mac**: `Cmd+Shift+U`
+
+Copies URLs from all open tabs in your current window to the clipboard.
+
+### Paste URLs
+- **Windows/Linux**: `Ctrl+Shift+Y`
+- **Mac**: `Cmd+Shift+Y`
+
+Opens URLs from your clipboard in new tabs.
+
+## How Shortcuts Work
+
+When you press a keyboard shortcut:
+
+1. The extension accesses the active page's clipboard
+2. For copy: URLs are formatted according to your default format setting
+3. For paste: URLs are extracted from clipboard content (supports multiple formats)
+4. Visual feedback is shown via the extension badge (✓ for success)
+
+## Badge Indicators
+
+After using a shortcut, you'll see a badge on the extension icon:
+
+- **✓** (checkmark): Operation successful
+- **!** (exclamation): Warning or partial success
+- **∅** (empty set): No URLs found
+- **⏳** (hourglass): Processing
+
+Badges automatically clear after a few seconds.
+
+## Customizing Shortcuts
+
+To change keyboard shortcuts:
+
+1. Go to `chrome://extensions/shortcuts`
+2. Find "Umbrella - Copy All URLs"
+3. Click the edit icon next to each command
+4. Press your desired key combination
+5. Click "OK" to save
+
+**Note**: Some key combinations may be reserved by Chrome or your operating system.
+
+## Supported URL Formats for Pasting
+
+When pasting URLs, Umbrella automatically detects and extracts URLs from:
+
+- Plain text (one URL per line)
+- Markdown links: `[title](url)`
+- HTML links: `<a href="url">title</a>`
+- Quoted URLs: `"url"` or `'url'`
+- URL-encoded characters (automatically decoded)
+
+## Tips
+
+- Use shortcuts when you need to quickly save your current tabs
+- Combine with auto-copy disabled for more control over when URLs are copied
+- Shortcuts work even when the popup is not open
+- URLs are always copied in your default format setting

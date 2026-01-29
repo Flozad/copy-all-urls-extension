@@ -1,0 +1,109 @@
+export const metadata = {
+  title: 'Custom Templates',
+  description: 'Create custom URL formats with template variables',
+};
+
+# Custom Templates
+
+Create custom URL formats using template variables that are replaced with actual values when copying.
+
+## Template Variables
+
+Three variables are available:
+
+### `$url`
+The complete URL of the tab.
+
+**Example**: `https://example.com/page`
+
+### `$title`
+The page title from the tab.
+
+**Example**: `Example Page - My Website`
+
+### `$date`
+Current date and time when URLs are copied.
+
+**Example**: `2026-01-28`
+
+## Creating Templates
+
+To create a custom template:
+
+1. Open the Umbrella popup
+2. Click **Options**
+3. Select "Custom" from the format dropdown
+4. Enter your template in the "Custom Format" field
+5. Click **Save Settings**
+
+## Template Examples
+
+### Simple Title and URL
+```
+$title - $url
+```
+
+**Output**:
+```
+Example Page - https://example.com/page
+Another Page - https://example.com/other
+```
+
+### Markdown Links
+```
+[$title]($url)
+```
+
+**Output**:
+```
+[Example Page](https://example.com/page)
+[Another Page](https://example.com/other)
+```
+
+### Timestamped List
+```
+$date | $title | $url
+```
+
+**Output**:
+```
+2026-01-28 | Example Page | https://example.com/page
+2026-01-28 | Another Page | https://example.com/other
+```
+
+### CSV Format
+```
+"$title","$url","$date"
+```
+
+**Output**:
+```
+"Example Page","https://example.com/page","2026-01-28"
+"Another Page","https://example.com/other","2026-01-28"
+```
+
+## Use Cases
+
+### For Developers
+```
+const links = [
+  { url: '$url', title: '$title' },
+];
+```
+
+### For Documentation
+```
+- [$title]($url) - Added $date
+```
+
+### For Spreadsheets
+```
+$title	$url	$date
+```
+
+## Tips
+
+- Test your template by copying a few tabs first
+- Use consistent delimiters for easier parsing
+- Include `$date` for timestamped bookmarks
+- Combine with specific delimiters for CSV/TSV imports

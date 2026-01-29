@@ -1,0 +1,99 @@
+export const metadata = {
+  title: 'URL Formats',
+  description: 'Different formats for copying and exporting URLs',
+};
+
+# URL Formats
+
+Umbrella supports multiple formats for copying URLs, allowing you to choose the format that best suits your workflow.
+
+## Available Formats
+
+### Plain Text
+
+The simplest format - one URL per line.
+
+```
+https://example.com/page1
+https://example.com/page2
+https://example.com/page3
+```
+
+**Best for**: Quick sharing, simple lists, text editors
+
+### HTML
+
+URLs formatted as HTML anchor tags with page titles.
+
+```html
+<a href="https://example.com/page1">Page Title 1</a>
+<a href="https://example.com/page2">Page Title 2</a>
+<a href="https://example.com/page3">Page Title 3</a>
+```
+
+**Options**:
+- **Bold titles**: Wrap titles in `<strong>` tags
+- **Line breaks**: Add `<br>` between links
+
+**Best for**: Emails, rich text editors, web content
+
+### JSON
+
+Structured JSON array with URLs and titles.
+
+```json
+[
+  {
+    "url": "https://example.com/page1",
+    "title": "Page Title 1"
+  },
+  {
+    "url": "https://example.com/page2",
+    "title": "Page Title 2"
+  }
+]
+```
+
+**Best for**: Developers, API integration, data processing
+
+### Markdown
+
+URLs formatted as Markdown links.
+
+```markdown
+[Page Title 1](https://example.com/page1)
+[Page Title 2](https://example.com/page2)
+[Page Title 3](https://example.com/page3)
+```
+
+**Best for**: Documentation, GitHub, note-taking apps
+
+### Custom Format
+
+Create your own format using template variables:
+
+- `$url` - The page URL
+- `$title` - The page title
+- `$date` - Current date
+
+**Example template**:
+```
+$title - $url
+```
+
+**Output**:
+```
+Page Title 1 - https://example.com/page1
+Page Title 2 - https://example.com/page2
+```
+
+**Best for**: Specialized workflows, custom integrations
+
+## Setting Default Format
+
+1. Click the Umbrella icon to open the popup
+2. Click **Options**
+3. Select your preferred format from the dropdown
+4. Click **Save Settings**
+
+Your choice will be remembered for all future copies.

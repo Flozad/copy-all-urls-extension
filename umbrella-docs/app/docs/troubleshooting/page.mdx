@@ -1,0 +1,114 @@
+export const metadata = {
+  title: 'Troubleshooting',
+  description: 'Common issues and solutions',
+};
+
+# Troubleshooting
+
+Common issues and solutions for Umbrella Chrome extension.
+
+## Settings Not Saving
+
+If your settings are being forgotten or reset to defaults:
+
+### Quick Fix
+1. Open the Umbrella popup
+2. Click **Options**
+3. Click **Check Storage Health**
+4. If issues are detected, click **Repair Storage**
+5. Reconfigure your settings
+
+### Common Causes
+- Chrome sync issues
+- Storage quota exceeded
+- Extension permissions changed
+- Browser profile corruption
+
+## Clipboard Not Working
+
+If copying or pasting isn't working:
+
+### Verify Permissions
+1. Go to `chrome://extensions/`
+2. Find "Umbrella - Copy All URLs"
+3. Check that "Clipboard Read" and "Clipboard Write" are enabled
+4. Reload the extension if permissions were just granted
+
+### Browser Restrictions
+- Some clipboard operations require HTTPS
+- Chrome may block clipboard access on certain pages
+- Try from a regular webpage (not chrome:// pages)
+
+## Keyboard Shortcuts Not Working
+
+If shortcuts aren't responding:
+
+### Check Shortcut Configuration
+1. Go to `chrome://extensions/shortcuts`
+2. Verify shortcuts are set for Umbrella
+3. Check for conflicts with other extensions
+4. Try different key combinations
+
+### Common Issues
+- Shortcuts don't work on `chrome://` pages (Chrome restriction)
+- Some key combinations are reserved by the OS
+- Focus must be on a Chrome window
+- Another extension may be using the same shortcut
+
+## URLs Not Detected When Pasting
+
+If pasted content doesn't open tabs:
+
+### Supported Formats
+Ensure your clipboard contains URLs in one of these formats:
+
+- Plain text URLs (one per line)
+- Markdown links: `[title](url)`
+- HTML links: `<a href="url">title</a>`
+- Quoted URLs: `"url"` or `'url'`
+
+### Common Issues
+- URLs must start with `http://` or `https://`
+- Multiple formats mixed in clipboard may cause parsing issues
+- Very large clipboard content may timeout
+
+## Extension Badge Shows Error
+
+Badge indicators and their meanings:
+
+- **✓** (checkmark): Operation successful
+- **!** (exclamation): Warning or partial success
+- **∅** (empty set): No URLs found to copy
+- **⏳** (hourglass): Processing operation
+
+### If Badge Shows Error
+1. Check browser console for detailed error message
+2. Verify you have open tabs to copy
+3. Test clipboard access manually
+4. Try reloading the extension
+
+## Context Menu Not Appearing
+
+If right-click menu items are missing:
+
+1. Check "Show context menu items" in Options is enabled
+2. Refresh the webpage after enabling
+3. Verify extension has proper permissions
+4. Restart Chrome if issue persists
+
+## Reporting Issues
+
+If problems persist:
+
+1. Check browser console (`F12` → Console) for errors
+2. Note your Chrome version: `chrome://version/`
+3. Document steps to reproduce the issue
+4. Open an issue on [GitHub](https://github.com/Flozad/copy-all-urls-extension/issues)
+
+Include in your report:
+- Chrome version
+- Extension version
+- Operating system
+- Steps to reproduce
+- Console error messages (if any)
+- Expected vs actual behavior
