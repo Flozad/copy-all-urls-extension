@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.12.0] - 2026-01-30
+
+### Added
+- **Auto-copy toggle in popup** - Quick access checkbox to enable/disable auto-copy without opening settings
+- **Feedback button** - Email link in footer for easy user feedback (clasicwebtools@gmail.com)
+
+### Fixed
+- **Paste URLs from Google Sheets** - Fixed HTML markup being appended to URLs when pasting from spreadsheets
+  - Now prefers plain text over HTML when reading clipboard for paste operations
+  - Strips HTML tags and entities before URL extraction in smart paste mode
+  - Removes duplicate URLs from paste results
+- **Dark mode footer links** - Links now turn white on hover instead of disappearing in dark mode
+
+### Changed
+- Clipboard reading now prioritizes plain text over HTML for better paste accuracy
+- Improved URL extraction regex to handle HTML content more reliably
+
 ## [1.11.0] - 2026-01-29
 
 ### Fixed

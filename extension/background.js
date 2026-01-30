@@ -71,27 +71,27 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
           tab = nonRestrictedTab;
         }
 
-        // Inject script to read clipboard (HTML or text) from content script context
+        // Inject script to read clipboard from content script context
         const results = await chrome.scripting.executeScript({
           target: {tabId: tab.id},
           func: async () => {
             try {
-              // Try to read clipboard with HTML support
+              // Try to read clipboard items
               const clipboardItems = await navigator.clipboard.read();
 
               for (const item of clipboardItems) {
-                // Check if HTML is available
-                if (item.types.includes('text/html')) {
-                  const htmlBlob = await item.getType('text/html');
-                  const htmlText = await htmlBlob.text();
-                  return { content: htmlText, isHtml: true };
-                }
-
-                // Fallback to plain text
+                // Prefer plain text for better URL extraction
                 if (item.types.includes('text/plain')) {
                   const textBlob = await item.getType('text/plain');
                   const plainText = await textBlob.text();
                   return { content: plainText, isHtml: false };
+                }
+
+                // Fallback to HTML
+                if (item.types.includes('text/html')) {
+                  const htmlBlob = await item.getType('text/html');
+                  const htmlText = await htmlBlob.text();
+                  return { content: htmlText, isHtml: true };
                 }
               }
 
@@ -243,10 +243,39 @@ const Action = {
       let urlList = [];
 
       if (smartPaste) {
+        // First, strip HTML tags to get clean text
+        let cleanContent = content;
+
+        // Check if content looks like HTML (contains tags)
+        if (/<[^>]+>/.test(content)) {
+          console.log('HTML detected in content - extracting text');
+          // Remove HTML tags and decode HTML entities
+          cleanContent = content
+            .replace(/<[^>]*>/g, ' ')  // Replace tags with spaces
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/\s+/g, ' ')  // Collapse multiple spaces
+            .trim();
+          console.log('Cleaned content:', cleanContent);
+        }
+
         // Extract URLs using regex (only http/https for security)
-        const urlPattern = /https?:\/\/[^\s"']+/g;
-        urlList = content.match(urlPattern) || [];
-        urlList = urlList.map(url => url.trim().replace(/^["']|["']$/g, ''));
+        // Updated pattern to stop at common URL-ending characters
+        const urlPattern = /https?:\/\/[^\s"'<>]+/g;
+        urlList = cleanContent.match(urlPattern) || [];
+        urlList = urlList.map(url => {
+          // Clean up URLs: remove trailing punctuation that's not part of URLs
+          return url.trim()
+            .replace(/^["']|["']$/g, '')
+            .replace(/[,;)\]}>]+$/, '');  // Remove trailing punctuation
+        });
+
+        // Remove duplicates
+        urlList = [...new Set(urlList)];
         console.log('Smart Paste ON - extracted http/https URLs:', urlList);
       } else {
         // Treat each line as a separate URL - NO VALIDATION!
@@ -301,27 +330,27 @@ chrome.action.onClicked.addListener(async function (tab) {
             tab = nonRestrictedTab;
           }
 
-          // Inject script to read clipboard (HTML or text) from content script context
+          // Inject script to read clipboard from content script context
           const results = await chrome.scripting.executeScript({
             target: {tabId: tab.id},
             func: async () => {
               try {
-                // Try to read clipboard with HTML support
+                // Try to read clipboard items
                 const clipboardItems = await navigator.clipboard.read();
 
                 for (const item of clipboardItems) {
-                  // Check if HTML is available
-                  if (item.types.includes('text/html')) {
-                    const htmlBlob = await item.getType('text/html');
-                    const htmlText = await htmlBlob.text();
-                    return { content: htmlText, isHtml: true };
-                  }
-
-                  // Fallback to plain text
+                  // Prefer plain text for better URL extraction
                   if (item.types.includes('text/plain')) {
                     const textBlob = await item.getType('text/plain');
                     const plainText = await textBlob.text();
                     return { content: plainText, isHtml: false };
+                  }
+
+                  // Fallback to HTML
+                  if (item.types.includes('text/html')) {
+                    const htmlBlob = await item.getType('text/html');
+                    const htmlText = await htmlBlob.text();
+                    return { content: htmlText, isHtml: true };
                   }
                 }
 
@@ -526,27 +555,27 @@ async function handlePasteShortcut() {
       }
     }
 
-    // Inject script to read from clipboard (HTML or text)
+    // Inject script to read from clipboard
     const results = await chrome.scripting.executeScript({
       target: { tabId: targetTab.id },
       func: async () => {
         try {
-          // Try to read clipboard with HTML support
+          // Try to read clipboard items
           const clipboardItems = await navigator.clipboard.read();
 
           for (const item of clipboardItems) {
-            // Check if HTML is available
-            if (item.types.includes('text/html')) {
-              const htmlBlob = await item.getType('text/html');
-              const htmlText = await htmlBlob.text();
-              return { content: htmlText, isHtml: true };
-            }
-
-            // Fallback to plain text
+            // Prefer plain text for better URL extraction
             if (item.types.includes('text/plain')) {
               const textBlob = await item.getType('text/plain');
               const plainText = await textBlob.text();
               return { content: plainText, isHtml: false };
+            }
+
+            // Fallback to HTML
+            if (item.types.includes('text/html')) {
+              const htmlBlob = await item.getType('text/html');
+              const htmlText = await htmlBlob.text();
+              return { content: htmlText, isHtml: true };
             }
           }
 

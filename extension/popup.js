@@ -71,6 +71,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateSourceIndicator(currentPasteSource);
   });
 
+  // Auto-copy toggle management
+  const autoCopyToggle = document.getElementById('autoCopyToggle');
+
+  // Load current auto-copy setting
+  chrome.storage.sync.get(['autoAction'], function(result) {
+    autoCopyToggle.checked = result.autoAction === true;
+  });
+
+  // Handle auto-copy toggle changes
+  autoCopyToggle.addEventListener('change', function() {
+    const isEnabled = this.checked;
+    chrome.storage.sync.set({ autoAction: isEnabled }, function() {
+      const message = isEnabled
+        ? 'Auto-copy enabled - URLs will copy when popup opens'
+        : 'Auto-copy disabled';
+      showMessage(message, 'success');
+    });
+  });
+
   document.getElementById('actionCopy').addEventListener('click', function() {
     chrome.runtime.sendMessage({ type: 'copy' });
   });
@@ -86,30 +105,28 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
       chrome.runtime.sendMessage({ type: 'paste', content: textareaContent });
     } else {
-      // Use clipboard - try to read HTML first, then fall back to plain text
+      // Use clipboard - prefer plain text for better URL extraction
       try {
         let content = '';
-        let isHtml = false;
 
         try {
-          // Try to read clipboard with HTML support
+          // Try to read clipboard items
           const clipboardItems = await navigator.clipboard.read();
 
           for (const item of clipboardItems) {
-            // Check if HTML is available
-            if (item.types.includes('text/html')) {
-              const htmlBlob = await item.getType('text/html');
-              content = await htmlBlob.text();
-              isHtml = true;
-              console.log('Read HTML from clipboard');
-              break;
-            }
-
-            // Fallback to plain text
+            // Prefer plain text over HTML for URL pasting
             if (item.types.includes('text/plain')) {
               const textBlob = await item.getType('text/plain');
               content = await textBlob.text();
               console.log('Read plain text from clipboard');
+              break;
+            }
+
+            // Fallback to HTML if plain text not available
+            if (item.types.includes('text/html')) {
+              const htmlBlob = await item.getType('text/html');
+              content = await htmlBlob.text();
+              console.log('Read HTML from clipboard (plain text not available)');
               break;
             }
           }
