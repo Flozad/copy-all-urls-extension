@@ -1,4 +1,11 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Documentation',
+  description:
+    'Complete guide for Umbrella Chrome extension. Learn how to copy URLs in multiple formats, use keyboard shortcuts, create custom templates, and troubleshoot issues.',
+};
 
 const navigation = [
   { name: 'Getting Started', href: '/docs' },
@@ -24,8 +31,8 @@ export default function DocsLayout({
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="flex gap-12 py-12">
         {/* Sidebar */}
-        <aside className="hidden w-64 shrink-0 lg:block">
-          <nav className="sticky top-24 space-y-8">
+        <aside className="hidden w-64 shrink-0 lg:block" aria-label="Documentation navigation">
+          <nav className="sticky top-24 space-y-8" role="navigation">
             {navigation.map((item) => (
               <div key={item.name}>
                 {item.href ? (

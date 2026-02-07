@@ -1,0 +1,21 @@
+{
+  "name": "Umbrella - Copy All URLs Documentation",
+  "short_name": "Umbrella Docs",
+  "description": "Official documentation for Umbrella Chrome extension. Learn how to manage browser tabs efficiently.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr"
+}
