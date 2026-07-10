@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.1] - 2026-07-10
+
+### Fixed
+- **CRITICAL: Settings reset on Chrome/extension updates** (Issues #6, #14, #18)
+  - `chrome.runtime.onInstalled` fires on extension updates AND Chrome updates, not just first install
+  - The handler was unconditionally overwriting all saved settings with defaults on every update
+  - Now only fills in settings that are missing (fresh install or newly added options), never overwriting existing user preferences
+
 ## [1.12.0] - 2026-01-30
 
 ### Added

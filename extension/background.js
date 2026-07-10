@@ -40,8 +40,27 @@ async function updateContextMenus() {
 
 try {
   chrome.runtime.onInstalled.addListener(async () => {
-    chrome.storage.sync.set(DEFAULT_SETTINGS, () => {
-      console.log('Default settings have been set.');
+    // onInstalled fires on extension updates and Chrome updates too, not just
+    // first install. Only fill in settings the user doesn't already have,
+    // so existing preferences are never overwritten (issues #6, #14, #18).
+    chrome.storage.sync.get(null, (existing) => {
+      if (chrome.runtime.lastError) {
+        console.error('Failed to read settings, skipping defaults to avoid overwriting:', chrome.runtime.lastError);
+        return;
+      }
+
+      const missingDefaults = {};
+      for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
+        if (!(key in existing)) {
+          missingDefaults[key] = value;
+        }
+      }
+
+      if (Object.keys(missingDefaults).length > 0) {
+        chrome.storage.sync.set(missingDefaults, () => {
+          console.log('Missing default settings have been set:', Object.keys(missingDefaults));
+        });
+      }
     });
 
     // Initialize context menus based on settings
