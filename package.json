@@ -1,0 +1,13 @@
+{
+  "name": "copy-all-urls-extension",
+  "version": "1.13.0",
+  "description": "Umbrella - Copy All URLs Chrome extension",
+  "private": true,
+  "scripts": {
+    "test": "node --test 'test/**/*.test.js'",
+    "build:zip": "node tools/build-zip.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3"
+  }
+}

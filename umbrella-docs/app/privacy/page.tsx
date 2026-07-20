@@ -29,6 +29,34 @@ export default function PrivacyPage() {
           being transparent about our data practices.
         </p>
 
+        {/*
+          Chrome Web Store requires an affirmative Limited Use disclosure on the
+          developer's homepage or one click away. Keep this prominent and do not
+          bury it inside a numbered section.
+        */}
+        <div className="not-prose my-8 rounded-lg border border-gray-300 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-900">
+          <h2 className="mb-3 mt-0 text-base font-semibold uppercase tracking-wide">
+            Limited Use Disclosure
+          </h2>
+          <p className="m-0 text-sm leading-relaxed">
+            Umbrella - Copy All URLs&apos; use and transfer of information
+            received from Google APIs to any other app will adhere to the{' '}
+            <a
+              href="https://developer.chrome.com/docs/webstore/program-policies/limited-use/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Chrome Web Store User Data Policy
+            </a>
+            , including the Limited Use requirements. The Extension processes tab
+            URLs, tab titles, and clipboard contents entirely on your device. It
+            transmits no user data off your device, sells no user data, and uses
+            no user data for advertising, credit assessment, or any purpose
+            unrelated to the Extension&apos;s single user-facing function of
+            copying and reopening browser tabs. No humans read your data.
+          </p>
+        </div>
+
         <h2>1. Information We Do NOT Collect</h2>
         <p>
           The Extension is designed with privacy as a core principle. We want to

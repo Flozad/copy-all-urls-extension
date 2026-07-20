@@ -35,9 +35,12 @@ function handleCopy(text) {
   writeEl.value = '';
 }
 
-// Read the clipboard via a contenteditable div. Prefer plain text (innerText),
-// fall back to HTML (innerHTML) — mirroring the previous injected reader so
-// Action.paste receives the exact same { content, isHtml } shape.
+// Read the clipboard via a contenteditable div. Returns BOTH flavors: plain
+// text is preferred, but the HTML is always included as `html` so Action.paste
+// can fall back to it. Returning only the plain text made the href/src
+// extraction unreachable — a rich-link copy always carries a text/plain flavor
+// (the link labels), so the HTML branch never ran and paste failed with
+// "No URL found" on exactly the content it was written for.
 function handleRead() {
   readEl.innerHTML = '';
   readEl.focus();
@@ -47,11 +50,12 @@ function handleRead() {
   const html = readEl.innerHTML;
   readEl.innerHTML = '';
 
-  if (plain && plain.trim()) {
-    return { content: plain, isHtml: false };
-  }
-  if (html && html.trim()) {
-    return { content: html, isHtml: true };
-  }
-  return { content: '', isHtml: false };
+  const hasPlain = Boolean(plain && plain.trim());
+  const hasHtml = Boolean(html && html.trim());
+
+  return {
+    content: hasPlain ? plain : (hasHtml ? html : ''),
+    html: hasHtml ? html : '',
+    isHtml: !hasPlain && hasHtml
+  };
 }

@@ -51,7 +51,9 @@ Custom templates support variables: `$url`, `$title`, `$date`. Formats include t
 
 ## Permissions
 
-Umbrella requests only what it needs: `tabs`, `storage`, `clipboardRead`, `clipboardWrite`, `contextMenus`, and `offscreen`. It has **no host permissions**, loads no remote code, and its content security policy is restricted to `'self'`. URLs and clipboard contents never leave your browser.
+Umbrella requests only what it needs: `tabs`, `storage`, `clipboardRead`, `clipboardWrite`, `contextMenus`, `offscreen`, and `alarms`. It has **no host permissions** and no content scripts, and its content security policy is restricted to `'self'`. URLs and clipboard contents never leave your browser.
+
+Every asset the extension loads ships inside the package — including the Tailwind stylesheet, which is vendored at `extension/vendor/tailwind.min.css` rather than fetched from a CDN. The popup and options pages make **no network requests at all**; you can verify this in DevTools → Network with the extension open.
 
 ## Docs site
 

@@ -2,27 +2,56 @@
  * Utility class for handling Chrome storage operations with fallback and retry mechanisms
  */
 
-// Import centralized defaults (loaded via script tag in HTML files)
-// For background service worker, this will be available via importScripts
-const defaultSettings = typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : {
-    format: 'url_only',
-    mime: 'text/plain',
-    selectedTabsOnly: false,
-    includeAllWindows: false,
-    customTemplate: '',
-    delimiter: '--',
-    smartPaste: true,
-    defaultBehavior: 'copy',
-    autoAction: true,
-    showContextMenu: true,
-    bold: false
-};
+// Defaults come from utils/defaults.js, which every page that loads this file
+// includes first. There is deliberately no inline fallback copy: the previous
+// one had already drifted (autoAction: true here vs false in defaults.js, plus
+// missing theme/anchor/saveHistory), which defeats the single-source-of-truth
+// this file claims. Failing loudly beats silently serving stale defaults.
+if (typeof DEFAULT_SETTINGS === 'undefined') {
+    throw new Error('utils/storage.js requires utils/defaults.js to be loaded first');
+}
+
+const defaultSettings = DEFAULT_SETTINGS;
 
 const StorageUtil = {
     /**
      * Default settings used as fallback
      */
     defaultSettings: defaultSettings,
+
+    /**
+     * Builds the defaults-only result for a chrome.storage `keys` argument,
+     * mirroring chrome's own key semantics. This used to be a bare
+     * `{ ...defaults, ...keys }`, which is wrong for the most common form:
+     * `typeof [] === 'object'`, so an array of key *names* was spread
+     * positionally and `['format','theme']` returned every default plus
+     * `{0:'format', 1:'theme'}`.
+     * @param {string|string[]|object|null} keys
+     * @returns {object} defaults for exactly the requested keys
+     */
+    defaultsFor(keys) {
+        // null/undefined means "everything", same as chrome.storage.
+        if (keys === null || keys === undefined) {
+            return { ...defaultSettings };
+        }
+        if (typeof keys === 'string') {
+            return { [keys]: defaultSettings[keys] };
+        }
+        if (Array.isArray(keys)) {
+            return keys.reduce((acc, key) => {
+                acc[key] = defaultSettings[key];
+                return acc;
+            }, {});
+        }
+        // Object form: values are the caller's own defaults, which win over
+        // ours because that is what chrome.storage.get(object) promises — but
+        // an explicit `undefined` is not a default, so ours still applies.
+        const result = this.defaultsFor(Object.keys(keys));
+        for (const [key, value] of Object.entries(keys)) {
+            if (value !== undefined) result[key] = value;
+        }
+        return result;
+    },
 
     /**
      * Sets a value in storage with fallback to local storage
@@ -61,7 +90,6 @@ const StorageUtil = {
                                 }
                             });
                         });
-                        console.log('Using fallback local storage');
                         return true;
                     } catch (localError) {
                         console.error('Both sync and local storage failed:', localError);
@@ -110,12 +138,11 @@ const StorageUtil = {
                                 }
                             });
                         });
-                        console.log('Using fallback local storage');
                         return localResult;
                     } catch (localError) {
                         console.error('Both sync and local storage failed:', localError);
                         // Return defaults if both storages fail
-                        return typeof keys === 'object' ? { ...this.defaultSettings, ...keys } : { [keys]: this.defaultSettings[keys] };
+                        return this.defaultsFor(keys);
                     }
                 }
                 
@@ -123,7 +150,7 @@ const StorageUtil = {
                 await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 100));
             }
         }
-        return typeof keys === 'object' ? { ...this.defaultSettings, ...keys } : { [keys]: this.defaultSettings[keys] };
+        return this.defaultsFor(keys);
     },
 
     /**
@@ -230,5 +257,7 @@ const StorageUtil = {
     }
 };
 
-// Make StorageUtil available globally
-window.StorageUtil = StorageUtil;
+// Make StorageUtil available globally. Use globalThis, not window: `window` is
+// undefined in a service worker and would throw a ReferenceError if this file
+// were ever pulled in via importScripts.
+globalThis.StorageUtil = StorageUtil;
