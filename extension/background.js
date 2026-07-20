@@ -1,6 +1,70 @@
 // Import centralized default settings
 importScripts('utils/defaults.js');
 
+// ---- Offscreen clipboard bridge -------------------------------------------
+// The service worker cannot access the clipboard directly. Headless flows
+// (keyboard shortcuts, context menu, action button) route clipboard reads and
+// writes through a single offscreen document instead of injecting into a tab —
+// which removes the need for host permissions entirely.
+const OFFSCREEN_URL = 'offscreen.html';
+let offscreenCreating = null;
+
+async function hasOffscreenDocument() {
+  // hasDocument() exists in Chrome 116+. On older Chrome (109-115) fall back to
+  // scanning the service worker's clients, so every offscreen-capable version
+  // is supported without pinning a minimum_chrome_version.
+  if (chrome.offscreen && typeof chrome.offscreen.hasDocument === 'function') {
+    try {
+      return await chrome.offscreen.hasDocument();
+    } catch (e) {
+      // fall through to the clients-based check
+    }
+  }
+  try {
+    const url = chrome.runtime.getURL(OFFSCREEN_URL);
+    const matched = await self.clients.matchAll();
+    return matched.some((client) => client.url === url);
+  } catch (e) {
+    return false;
+  }
+}
+
+async function ensureOffscreen() {
+  if (await hasOffscreenDocument()) {
+    return;
+  }
+  // Guard against two concurrent operations both trying to create the document.
+  if (offscreenCreating) {
+    await offscreenCreating;
+    return;
+  }
+  try {
+    offscreenCreating = chrome.offscreen.createDocument({
+      url: OFFSCREEN_URL,
+      reasons: ['CLIPBOARD'],
+      justification: 'Read and write the clipboard to copy and paste tab URLs.'
+    });
+    await offscreenCreating;
+  } catch (err) {
+    // A concurrent create can win the race; that's fine. Rethrow anything else.
+    if (!String(err && err.message).includes('Only a single offscreen')) {
+      throw err;
+    }
+  } finally {
+    offscreenCreating = null;
+  }
+}
+
+async function writeClipboardViaOffscreen(text) {
+  await ensureOffscreen();
+  await chrome.runtime.sendMessage({ target: 'offscreen', action: 'copy', text });
+}
+
+async function readClipboardViaOffscreen() {
+  await ensureOffscreen();
+  return await chrome.runtime.sendMessage({ target: 'offscreen', action: 'read' });
+}
+
 // Function to update context menus based on settings
 async function updateContextMenus() {
   try {
@@ -29,9 +93,6 @@ async function updateContextMenus() {
         title: 'Paste URLs',
         contexts: ['all']
       });
-      console.log('Context menus created');
-    } else {
-      console.log('Context menus hidden per user preference');
     }
   } catch (error) {
     console.error('Failed to update context menus:', error);
@@ -57,9 +118,7 @@ try {
       }
 
       if (Object.keys(missingDefaults).length > 0) {
-        chrome.storage.sync.set(missingDefaults, () => {
-          console.log('Missing default settings have been set:', Object.keys(missingDefaults));
-        });
+        chrome.storage.sync.set(missingDefaults);
       }
     });
 
@@ -75,62 +134,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     Action.copy();
   } else if (info.menuItemId === 'pasteUrls') {
     try {
-      if (tab) {
-        // Check if tab is restricted
-        if (isRestrictedUrl(tab.url)) {
-          // Try to find a non-restricted tab
-          const tabs = await chrome.tabs.query({ currentWindow: true });
-          const nonRestrictedTab = tabs.find(t => !isRestrictedUrl(t.url));
+      const clipboardData = await readClipboardViaOffscreen();
 
-          if (!nonRestrictedTab) {
-            console.warn('Cannot paste: all tabs are restricted pages');
-            return;
-          }
-
-          tab = nonRestrictedTab;
-        }
-
-        // Inject script to read clipboard from content script context
-        const results = await chrome.scripting.executeScript({
-          target: {tabId: tab.id},
-          func: async () => {
-            try {
-              // Try to read clipboard items
-              const clipboardItems = await navigator.clipboard.read();
-
-              for (const item of clipboardItems) {
-                // Prefer plain text for better URL extraction
-                if (item.types.includes('text/plain')) {
-                  const textBlob = await item.getType('text/plain');
-                  const plainText = await textBlob.text();
-                  return { content: plainText, isHtml: false };
-                }
-
-                // Fallback to HTML
-                if (item.types.includes('text/html')) {
-                  const htmlBlob = await item.getType('text/html');
-                  const htmlText = await htmlBlob.text();
-                  return { content: htmlText, isHtml: true };
-                }
-              }
-
-              // Last resort: use readText()
-              const text = await navigator.clipboard.readText();
-              return { content: text, isHtml: false };
-            } catch (error) {
-              console.error('Clipboard read error:', error);
-              return null;
-            }
-          }
-        });
-
-        const clipboardData = results[0]?.result;
-
-        if (clipboardData && clipboardData.content && clipboardData.content.trim()) {
-          Action.paste(clipboardData.content);
-        } else {
-          console.warn('Clipboard is empty for context menu paste');
-        }
+      if (clipboardData && clipboardData.content && clipboardData.content.trim()) {
+        Action.paste(clipboardData.content);
+      } else {
+        console.warn('Clipboard is empty for context menu paste');
       }
     } catch (err) {
       console.error('Failed to read clipboard contents from context menu:', err);
@@ -249,10 +258,6 @@ const Action = {
     chrome.storage.sync.get(['smartPaste'], function (items) {
       const smartPaste = items['smartPaste'] === true;
 
-      console.log('========== PASTE FUNCTION (v1.5.1 STYLE) ==========');
-      console.log('SmartPaste enabled:', smartPaste);
-      console.log('Content:', content);
-
       if (!content) {
         console.error('No content provided for paste function');
         chrome.runtime.sendMessage({ type: "paste", errorMsg: "No content provided for paste function" });
@@ -267,7 +272,6 @@ const Action = {
 
         // Check if content looks like HTML (contains tags)
         if (/<[^>]+>/.test(content)) {
-          console.log('HTML detected in content - extracting text');
           // Remove HTML tags and decode HTML entities
           cleanContent = content
             .replace(/<[^>]*>/g, ' ')  // Replace tags with spaces
@@ -279,7 +283,6 @@ const Action = {
             .replace(/&#39;/g, "'")
             .replace(/\s+/g, ' ')  // Collapse multiple spaces
             .trim();
-          console.log('Cleaned content:', cleanContent);
         }
 
         // Extract URLs using regex (only http/https for security)
@@ -295,11 +298,9 @@ const Action = {
 
         // Remove duplicates
         urlList = [...new Set(urlList)];
-        console.log('Smart Paste ON - extracted http/https URLs:', urlList);
       } else {
         // Treat each line as a separate URL - NO VALIDATION!
         urlList = content.split('\n').map(url => url.trim()).filter(url => url.length > 0);
-        console.log('Smart Paste OFF - using each line as-is:', urlList);
       }
 
       if (urlList.length === 0) {
@@ -307,9 +308,7 @@ const Action = {
         return;
       }
 
-      console.log(`Opening ${urlList.length} tabs...`);
       urlList.forEach(url => {
-        console.log(`Creating tab for: ${url}`);
         chrome.tabs.create({ url });
       });
 
@@ -334,62 +333,12 @@ chrome.action.onClicked.addListener(async function (tab) {
       Action.copy();
     } else if (items.defaultBehavior === 'paste') {
       try {
-        if (tab) {
-          // Check if tab is restricted
-          if (isRestrictedUrl(tab.url)) {
-            // Try to find a non-restricted tab
-            const tabs = await chrome.tabs.query({ currentWindow: true });
-            const nonRestrictedTab = tabs.find(t => !isRestrictedUrl(t.url));
+        const clipboardData = await readClipboardViaOffscreen();
 
-            if (!nonRestrictedTab) {
-              console.warn('Cannot paste: all tabs are restricted pages');
-              return;
-            }
-
-            tab = nonRestrictedTab;
-          }
-
-          // Inject script to read clipboard from content script context
-          const results = await chrome.scripting.executeScript({
-            target: {tabId: tab.id},
-            func: async () => {
-              try {
-                // Try to read clipboard items
-                const clipboardItems = await navigator.clipboard.read();
-
-                for (const item of clipboardItems) {
-                  // Prefer plain text for better URL extraction
-                  if (item.types.includes('text/plain')) {
-                    const textBlob = await item.getType('text/plain');
-                    const plainText = await textBlob.text();
-                    return { content: plainText, isHtml: false };
-                  }
-
-                  // Fallback to HTML
-                  if (item.types.includes('text/html')) {
-                    const htmlBlob = await item.getType('text/html');
-                    const htmlText = await htmlBlob.text();
-                    return { content: htmlText, isHtml: true };
-                  }
-                }
-
-                // Last resort: use readText()
-                const text = await navigator.clipboard.readText();
-                return { content: text, isHtml: false };
-              } catch (error) {
-                console.error('Clipboard read error:', error);
-                return null;
-              }
-            }
-          });
-
-          const clipboardData = results[0]?.result;
-
-          if (clipboardData && clipboardData.content && clipboardData.content.trim()) {
-            Action.paste(clipboardData.content);
-          } else {
-            console.warn('Clipboard is empty for action button paste');
-          }
+        if (clipboardData && clipboardData.content && clipboardData.content.trim()) {
+          Action.paste(clipboardData.content);
+        } else {
+          console.warn('Clipboard is empty for action button paste');
         }
       } catch (err) {
         console.error('Failed to read clipboard contents from action button:', err);
@@ -419,36 +368,6 @@ function showSuccessBadge(count = '') {
 
 function showErrorBadge() {
   showBadge('!', '#F44336', 2000);
-}
-
-// Helper function to check if a URL is restricted (can't inject scripts)
-function isRestrictedUrl(url) {
-  if (!url) return true;
-  const restrictedPrefixes = [
-    'chrome://',
-    'chrome-extension://',
-    'edge://',
-    'about:',
-    'data:',
-    'file://',
-    'view-source:'
-  ];
-  const restrictedDomains = [
-    'chrome.google.com/webstore',
-    'microsoftedge.microsoft.com/addons'
-  ];
-
-  // Check prefixes
-  if (restrictedPrefixes.some(prefix => url.startsWith(prefix))) {
-    return true;
-  }
-
-  // Check domains
-  if (restrictedDomains.some(domain => url.includes(domain))) {
-    return true;
-  }
-
-  return false;
 }
 
 // Keyboard shortcut handlers
@@ -501,42 +420,9 @@ async function handleCopyShortcut() {
         break;
     }
 
-    // Get active tab to inject clipboard write script
-    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!activeTab) {
-      throw new Error('No active tab found');
-    }
-
-    // Check if current tab is restricted
-    if (isRestrictedUrl(activeTab.url)) {
-      // Try to find a non-restricted tab to inject into
-      const nonRestrictedTab = tabs.find(tab => !isRestrictedUrl(tab.url));
-
-      if (nonRestrictedTab) {
-        // Use a non-restricted tab for clipboard access
-        await chrome.scripting.executeScript({
-          target: { tabId: nonRestrictedTab.id },
-          func: (text) => {
-            navigator.clipboard.writeText(text);
-          },
-          args: [outputText]
-        });
-      } else {
-        // No non-restricted tabs available
-        console.warn('Cannot copy: all tabs are restricted pages');
-        showBadge('⚠', '#FF9800', 2000);
-        return;
-      }
-    } else {
-      // Inject script to write to clipboard in active tab
-      await chrome.scripting.executeScript({
-        target: { tabId: activeTab.id },
-        func: (text) => {
-          navigator.clipboard.writeText(text);
-        },
-        args: [outputText]
-      });
-    }
+    // Write the formatted URLs to the clipboard via the offscreen document.
+    // Works regardless of which tab is active (including chrome:// pages).
+    await writeClipboardViaOffscreen(outputText);
 
     showSuccessBadge(filteredTabs.length);
   } catch (error) {
@@ -549,66 +435,9 @@ async function handlePasteShortcut() {
   try {
     showLoadingBadge();
 
-    // Get all tabs to find a non-restricted one
-    const tabs = await chrome.tabs.query({ currentWindow: true });
-    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    // Read the clipboard via the offscreen document (no tab required).
+    const clipboardData = await readClipboardViaOffscreen();
 
-    if (!activeTab) {
-      throw new Error('No active tab found');
-    }
-
-    let targetTab = activeTab;
-
-    // Check if current tab is restricted
-    if (isRestrictedUrl(activeTab.url)) {
-      // Try to find a non-restricted tab to inject into
-      const nonRestrictedTab = tabs.find(tab => !isRestrictedUrl(tab.url));
-
-      if (nonRestrictedTab) {
-        targetTab = nonRestrictedTab;
-      } else {
-        // No non-restricted tabs available
-        console.warn('Cannot paste: all tabs are restricted pages');
-        showBadge('⚠', '#FF9800', 2000);
-        return;
-      }
-    }
-
-    // Inject script to read from clipboard
-    const results = await chrome.scripting.executeScript({
-      target: { tabId: targetTab.id },
-      func: async () => {
-        try {
-          // Try to read clipboard items
-          const clipboardItems = await navigator.clipboard.read();
-
-          for (const item of clipboardItems) {
-            // Prefer plain text for better URL extraction
-            if (item.types.includes('text/plain')) {
-              const textBlob = await item.getType('text/plain');
-              const plainText = await textBlob.text();
-              return { content: plainText, isHtml: false };
-            }
-
-            // Fallback to HTML
-            if (item.types.includes('text/html')) {
-              const htmlBlob = await item.getType('text/html');
-              const htmlText = await htmlBlob.text();
-              return { content: htmlText, isHtml: true };
-            }
-          }
-
-          // Last resort: use readText()
-          const text = await navigator.clipboard.readText();
-          return { content: text, isHtml: false };
-        } catch (error) {
-          console.error('Clipboard read error:', error);
-          return null;
-        }
-      }
-    });
-
-    const clipboardData = results[0]?.result;
     if (!clipboardData || !clipboardData.content || clipboardData.content.trim() === '') {
       showBadge('∅', '#FF9800', 2000);
       return;
@@ -627,24 +456,19 @@ async function handlePasteShortcut() {
 
 // Handle keyboard shortcuts
 chrome.commands.onCommand.addListener(async (command) => {
-  console.log('Keyboard shortcut triggered:', command);
-
   try {
     // Check if keyboard shortcuts are enabled
     const settings = await chrome.storage.sync.get(['enableShortcuts']);
     const shortcutsEnabled = settings.enableShortcuts !== false; // Default to true
 
     if (!shortcutsEnabled) {
-      console.log('Keyboard shortcuts are disabled in settings');
       showBadge('⚠', '#FF9800', 2000);
       return;
     }
 
     if (command === 'copy-urls') {
-      console.log('Executing copy command via shortcut');
       await handleCopyShortcut();
     } else if (command === 'paste-urls') {
-      console.log('Executing paste command via shortcut');
       await handlePasteShortcut();
     } else {
       console.warn('Unknown command:', command);
@@ -654,5 +478,3 @@ chrome.commands.onCommand.addListener(async (command) => {
     showErrorBadge();
   }
 });
-
-// Old ActionKeyboard object removed - keyboard shortcuts now use direct clipboard access via content script injection
