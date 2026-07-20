@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { CookiePreferencesLink } from '@/components/cookie-consent';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -16,7 +17,7 @@ export default function PrivacyPage() {
       <article className="prose prose-lg prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-5xl prose-h1:mb-4 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-p:leading-relaxed prose-a:text-black prose-a:underline prose-a:decoration-2 prose-a:underline-offset-4 hover:prose-a:decoration-gray-400 prose-a:transition-colors prose-li:leading-relaxed">
         <h1>Privacy Policy</h1>
         <p className="text-sm text-gray-500">
-          Last updated: February 7, 2026
+          Last updated: July 20, 2026
         </p>
 
         <p>
@@ -132,9 +133,9 @@ export default function PrivacyPage() {
 
         <h3>2.3 Local Storage</h3>
         <p>
-          The Extension uses Chrome&apos;s <code>storage</code> API to save
-          your preferences (such as default format, auto-copy setting, and
-          custom templates). This data is:
+          The Extension uses Chrome&apos;s <code>storage</code> API to save your
+          preferences (such as default format, auto-copy setting, and custom
+          templates). This data is:
         </p>
         <ul>
           <li>
@@ -150,12 +151,51 @@ export default function PrivacyPage() {
           </li>
         </ul>
 
-        <h3>2.4 Content Scripts</h3>
+        <h3>2.4 Copy History</h3>
         <p>
-          The Extension uses a content script that runs on web pages solely to
-          facilitate clipboard operations in contexts where the extension popup
-          is not available. This script does not collect, read, or transmit any
-          page content, personal data, or browsing information.
+          The Extension keeps a list of your recent copies so you can return to
+          an earlier set of tabs. This history contains the URLs and titles you
+          copied, and it is:
+        </p>
+        <ul>
+          <li>
+            Stored on <strong>your device only</strong>, in local extension
+            storage. It is deliberately never synced, so it does not travel
+            between your computers.
+          </li>
+          <li>
+            Capped at 25 entries, with older entries discarded automatically.
+          </li>
+          <li>
+            Deletable at any time — individually or all at once — from the
+            Extension&apos;s popup, and switched off entirely in Settings.
+          </li>
+          <li>
+            <strong>Never transmitted</strong> anywhere.
+          </li>
+        </ul>
+
+        <h3>2.5 No Content Scripts</h3>
+        <p>
+          The Extension runs <strong>no code on the pages you visit</strong>. It
+          registers no content scripts and requests no host permissions, so it
+          cannot read or modify the content of any website.
+        </p>
+        <p>
+          When you copy or paste using a keyboard shortcut or the right-click
+          menu, there is no open popup to perform the clipboard operation. In
+          that case the Extension creates a short-lived, invisible{' '}
+          <a
+            href="https://developer.chrome.com/docs/extensions/reference/api/offscreen"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            offscreen document
+          </a>{' '}
+          — a page belonging to the Extension itself, not to any website — and
+          performs the clipboard operation there. This design was chosen
+          specifically so that the Extension never needs access to the sites you
+          browse.
         </p>
 
         <h2>3. Browser Permissions Explained</h2>
@@ -163,18 +203,19 @@ export default function PrivacyPage() {
           The Extension requests the following Chrome permissions, each for a
           specific and limited purpose:
         </p>
+        {/*
+          This list must match extension/manifest.json exactly. Claiming a
+          permission the extension does not hold is as much a listing-accuracy
+          problem as omitting one it does.
+        */}
         <ul>
           <li>
             <strong>tabs</strong>: To read the titles and URLs of your open
-            tabs for the copy functionality.
+            tabs, which is the data the Extension copies.
           </li>
           <li>
-            <strong>activeTab</strong>: To interact with the currently active
-            tab when triggered by the user.
-          </li>
-          <li>
-            <strong>storage</strong>: To save your extension preferences
-            locally.
+            <strong>storage</strong>: To save your preferences and your local
+            copy history on your device.
           </li>
           <li>
             <strong>clipboardRead / clipboardWrite</strong>: To copy URLs to
@@ -185,10 +226,23 @@ export default function PrivacyPage() {
             copying and pasting URLs.
           </li>
           <li>
-            <strong>scripting</strong>: To execute clipboard operations in
-            certain browser contexts.
+            <strong>offscreen</strong>: Clipboard access requires a document,
+            and the Extension&apos;s background service worker does not have
+            one. A minimal offscreen document performs the clipboard operation.
+            This deliberately avoids the alternative of injecting a script into
+            the pages you visit, which is why the Extension needs no access to
+            any website.
+          </li>
+          <li>
+            <strong>alarms</strong>: To clear the toolbar badge a few seconds
+            after a copy or paste confirmation.
           </li>
         </ul>
+        <p>
+          The Extension requests <strong>no host permissions</strong> and
+          registers <strong>no content scripts</strong>, so it has no access to
+          the content of the pages you visit.
+        </p>
 
         <h2>4. Website Analytics</h2>
         <p>
@@ -224,8 +278,10 @@ export default function PrivacyPage() {
           >
             Google Analytics Opt-out Browser Add-on
           </a>{' '}
-          or by adjusting your cookie preferences. See our{' '}
-          <Link href="/cookies">Cookie Policy</Link> for more details.
+          , by declining analytics cookies when first prompted, or by reopening
+          your <CookiePreferencesLink /> at any time to withdraw consent already
+          given. See our <Link href="/cookies">Cookie Policy</Link> for more
+          details.
         </p>
         <p>
           <strong>
@@ -299,9 +355,11 @@ export default function PrivacyPage() {
           you have the right to access, rectify, erase, restrict processing,
           data portability, and object to processing of your personal data. As
           we do not collect personal data through the Extension, these rights
-          primarily apply to any data collected through Website analytics. You
-          can exercise your rights by contacting us or by disabling cookies on
-          our Website.
+          primarily apply to any data collected through Website analytics.
+          Analytics cookies are set on the Website only after you consent; you
+          can refuse them when first prompted, withdraw consent at any time via
+          your <CookiePreferencesLink />, or exercise any other right by
+          contacting us.
         </p>
 
         <h3>8.3 California Residents (CCPA/CPRA)</h3>
@@ -320,8 +378,9 @@ export default function PrivacyPage() {
           Under the Lei Geral de Prote&ccedil;&atilde;o de Dados (LGPD), you
           have the right to access, correct, anonymize, block, or delete
           unnecessary or excessive data, and to revoke consent. As we do not
-          collect personal data through the Extension, you can manage Website
-          analytics data through cookie settings or by contacting us.
+          collect personal data through the Extension, you can revoke consent
+          for Website analytics at any time via your{' '}
+          <CookiePreferencesLink /> or by contacting us.
         </p>
 
         <h3>8.5 Other Jurisdictions</h3>

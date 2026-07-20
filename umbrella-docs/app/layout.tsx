@@ -7,6 +7,8 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { createSoftwareApplicationSchema } from '@/lib/metadata';
 import { Mark } from '@/components/mark';
+import { CookieConsent } from '@/components/cookie-consent';
+import { CONSENT_KEY, GA_MEASUREMENT_ID } from '@/lib/analytics';
 
 // Newsreader — the masthead/display voice. Variable weight + a true italic for
 // the "verdict" line, self-hosted by next/font so no third-party origin is hit
@@ -121,21 +123,39 @@ export default function RootLayout({
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema
           dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
         />
-        {process.env.NEXT_PUBLIC_GA_ID && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
+        {/*
+          Analytics bootstrap ONLY — this deliberately does not load gtag.js.
+
+          Consent Mode alone would stop cookies but still let gtag.js send
+          cookieless pings (IP, URL, referrer) to Google on every page view,
+          including for visitors who declined. The Cookie Policy (§3.1) says
+          withdrawing consent stops further collection, so the tag itself must
+          not load until consent exists. CookieConsent injects gtag.js only
+          after the visitor opts in.
+
+          The consent default is still queued here so it is guaranteed to sit
+          ahead of the later config call in dataLayer's FIFO order.
+        */}
+        {GA_MEASUREMENT_ID && (
+          <Script id="google-analytics-consent" strategy="afterInteractive">
+            {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+                window.gtag = gtag;
+                var umbrellaConsent = 'denied';
+                try {
+                  if (localStorage.getItem(${JSON.stringify(CONSENT_KEY)}) === 'granted') {
+                    umbrellaConsent = 'granted';
+                  }
+                } catch (e) {}
+                gtag('consent', 'default', {
+                  analytics_storage: umbrellaConsent,
+                  ad_storage: 'denied',
+                  ad_user_data: 'denied',
+                  ad_personalization: 'denied'
+                });
               `}
-            </Script>
-          </>
+          </Script>
         )}
       </head>
       <body>
@@ -219,6 +239,8 @@ export default function RootLayout({
             <span>Built by Lozard · Clasic Web Tools</span>
           </div>
         </footer>
+
+        <CookieConsent />
       </body>
     </html>
   );
