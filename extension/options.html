@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Settings | Umbrella - Copy All URLs</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="./vendor/tailwind.min.css" rel="stylesheet">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -60,7 +60,7 @@
         }
 
         body.theme-dark .text-gray-500 {
-            color: #8a8a8a !important;
+            color: #a3a3a3 !important;
         }
 
         body.theme-dark .border-gray-200 {
@@ -95,13 +95,13 @@
             background: linear-gradient(to right, #1e4d3a, #2e5d4a) !important;
         }
 
-        body.theme-dark .bg-gradient-to-r.from-amber-50 {
+        body.theme-dark .bg-gradient-to-r.from-yellow-50 {
             background: linear-gradient(to right, #4d3d1e, #5d4d2e) !important;
         }
 
         body.theme-dark .border-purple-200,
         body.theme-dark .border-green-200,
-        body.theme-dark .border-amber-200 {
+        body.theme-dark .border-yellow-200 {
             border-color: #4a4a4a !important;
         }
 
@@ -232,7 +232,7 @@
             }
 
             body.theme-auto .text-gray-500 {
-                color: #8a8a8a !important;
+                color: #a3a3a3 !important;
             }
 
             body.theme-auto .border-gray-200 {
@@ -267,13 +267,13 @@
                 background: linear-gradient(to right, #1e4d3a, #2e5d4a) !important;
             }
 
-            body.theme-auto .bg-gradient-to-r.from-amber-50 {
+            body.theme-auto .bg-gradient-to-r.from-yellow-50 {
                 background: linear-gradient(to right, #4d3d1e, #5d4d2e) !important;
             }
 
             body.theme-auto .border-purple-200,
             body.theme-auto .border-green-200,
-            body.theme-auto .border-amber-200 {
+            body.theme-auto .border-yellow-200 {
                 border-color: #4a4a4a !important;
             }
 
@@ -360,10 +360,53 @@
                 background-color: #5a2a2a !important;
             }
         }
-    </style>
-    <script src="jquery-3.7.1.min.js"></script>
+    
+            /* ==================== FOCUS VISIBILITY ==================== */
+            /* Tailwind v2 ships no :focus-visible ring, and the popup is now
+               fully keyboard navigable, so every interactive element needs a
+               focus indicator that survives both themes. */
+            button:focus-visible,
+            a:focus-visible,
+            input:focus-visible,
+            select:focus-visible,
+            textarea:focus-visible,
+            [role='menuitem']:focus-visible {
+                outline: 2px solid #2563eb !important;
+                outline-offset: 2px !important;
+            }
+
+            body.theme-dark button:focus-visible,
+            body.theme-dark a:focus-visible,
+            body.theme-dark input:focus-visible,
+            body.theme-dark select:focus-visible,
+            body.theme-dark textarea:focus-visible,
+            body.theme-dark [role='menuitem']:focus-visible {
+                outline-color: #ffffff !important;
+            }
+
+            @media (prefers-color-scheme: dark) {
+                body.theme-auto button:focus-visible,
+                body.theme-auto a:focus-visible,
+                body.theme-auto input:focus-visible,
+                body.theme-auto select:focus-visible,
+                body.theme-auto textarea:focus-visible,
+                body.theme-auto [role='menuitem']:focus-visible {
+                    outline-color: #ffffff !important;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                *, *::before, *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+
+        </style>
     <script src="utils/defaults.js"></script>
     <script src="utils/storage.js"></script>
+    <script src="utils/history.js"></script>
     <script src="options.js"></script>
 </head>
 <body class="bg-gray-50">
@@ -372,7 +415,7 @@
     <!-- Header -->
     <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-xl mb-6 border-2 border-gray-200">
         <div class="flex items-center justify-center mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="currentColor" class="mr-3 text-gray-900">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="currentColor" class="mr-3 text-gray-900">
               <path d="m13.13 14.56l1.43-1.43L21 19.57L19.57 21zm4.29-5.73l2.86-2.86C16.33 2 9.93 2 6 5.95c3.91-1.3 8.29-.25 11.42 2.88M5.95 6C2 9.93 2 16.33 5.97 20.28l2.86-2.86C5.7 14.29 4.65 9.91 5.95 6m.02-.04l-.01.01C5.58 9 7.13 12.85 10.26 16L16 10.26c-3.14-3.13-7-4.68-10.03-4.3"/>
             </svg>
             <div class="text-left">
@@ -388,7 +431,7 @@
     <!-- About Section -->
     <div class="bg-blue-50 border-2 border-blue-200 p-4 rounded-xl mb-5">
         <div class="flex items-start">
-            <svg class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
             </svg>
             <div>
@@ -404,7 +447,7 @@
     <!-- Format Settings -->
     <div class="bg-white border-2 border-gray-200 p-5 rounded-xl mb-5 shadow-sm">
         <div class="flex items-center mb-3">
-            <svg class="w-5 h-5 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" class="w-5 h-5 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
             </svg>
             <h2 class="text-lg font-bold text-gray-900">Output Format</h2>
@@ -458,7 +501,7 @@
 
         <div id="html_advanced" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-4 border-2 border-blue-200">
             <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg aria-hidden="true" class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
                 </svg>
                 HTML Anchor Options
@@ -477,7 +520,7 @@
 
         <div id="custom_advanced" class="hidden bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg mb-4 border-2 border-purple-200">
             <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center">
-                <svg class="w-4 h-4 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg aria-hidden="true" class="w-4 h-4 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                 </svg>
                 Custom Format Template
@@ -494,15 +537,15 @@
             </div>
         </div>
 
-        <div id="delimited_advanced" class="hidden bg-gradient-to-r from-green-50 to-teal-50 p-4 rounded-lg mb-4 border-2 border-green-200">
+        <div id="delimited_advanced" class="hidden bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg mb-4 border-2 border-green-200">
             <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center">
-                <svg class="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg aria-hidden="true" class="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
                 </svg>
                 Delimiter Settings
             </h4>
             <input type="text" id="delimiter_input" class="w-full px-3 py-2 font-mono text-sm border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none bg-white"
-                   placeholder="Enter delimiter (e.g., \t, |, --)" value="\t">
+                   placeholder="Enter delimiter (e.g., \t, |, --)">
             <div class="mt-2 bg-white p-2 rounded border border-green-200">
                 <p class="text-xs font-semibold text-gray-700 mb-2">Common Delimiters:</p>
                 <div class="flex flex-wrap gap-2">
@@ -518,7 +561,7 @@
     <!-- Miscellaneous Settings -->
     <div class="bg-white border-2 border-gray-200 p-5 rounded-xl mb-5 shadow-sm">
         <div class="flex items-center mb-3">
-            <svg class="w-5 h-5 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" class="w-5 h-5 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
             </svg>
             <h2 class="text-lg font-bold text-gray-900">General Options</h2>
@@ -530,7 +573,7 @@
                     <input type="checkbox" id="smart_paste" class="mr-3 w-5 h-5 mt-0.5">
                     <div>
                         <div class="flex items-center mb-1">
-                            <svg class="w-4 h-4 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg aria-hidden="true" class="w-4 h-4 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
                                 <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
                             </svg>
@@ -546,7 +589,7 @@
                     <input type="checkbox" id="selected_tabs_only" class="mr-3 w-5 h-5 mt-0.5">
                     <div>
                         <div class="flex items-center mb-1">
-                            <svg class="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg aria-hidden="true" class="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                                 <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
@@ -562,7 +605,7 @@
                     <input type="checkbox" id="include_all_windows" class="mr-3 w-5 h-5 mt-0.5">
                     <div>
                         <div class="flex items-center mb-1">
-                            <svg class="w-4 h-4 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg aria-hidden="true" class="w-4 h-4 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
                             </svg>
                             <span class="font-semibold text-gray-900">Include All Windows</span>
@@ -577,7 +620,7 @@
                     <input type="checkbox" id="show_context_menu" class="mr-3 w-5 h-5 mt-0.5">
                     <div>
                         <div class="flex items-center mb-1">
-                            <svg class="w-4 h-4 text-indigo-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg aria-hidden="true" class="w-4 h-4 text-indigo-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/>
                             </svg>
                             <span class="font-semibold text-gray-900">Show in Context Menu</span>
@@ -589,10 +632,27 @@
 
             <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                 <label class="flex items-start cursor-pointer">
+                    <input type="checkbox" id="save_history" class="mr-3 w-5 h-5 mt-0.5">
+                    <div>
+                        <div class="flex items-center mb-1">
+                            <svg aria-hidden="true" class="w-4 h-4 text-indigo-600 mr-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M3 3v5h5"/>
+                                <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
+                                <path d="M12 7v5l4 2"/>
+                            </svg>
+                            <span class="font-semibold text-gray-900">Save Copy History</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Keep your last 25 copies in the popup's history panel. Stored only on this device and never synced. Turn off to stop recording.</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                <label class="flex items-start cursor-pointer">
                     <input type="checkbox" id="auto_action" class="mr-3 w-5 h-5 mt-0.5">
                     <div>
                         <div class="flex items-center mb-1">
-                            <svg class="w-4 h-4 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg aria-hidden="true" class="w-4 h-4 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
                             </svg>
                             <span class="font-semibold text-gray-900">Auto-Copy on Popup Open</span>
@@ -607,7 +667,7 @@
                     <input type="checkbox" id="bold_titles" class="mr-3 w-5 h-5 mt-0.5">
                     <div>
                         <div class="flex items-center mb-1">
-                            <svg class="w-4 h-4 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg aria-hidden="true" class="w-4 h-4 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
                             </svg>
                             <span class="font-semibold text-gray-900">Bold Titles in HTML</span>
@@ -621,7 +681,7 @@
                 <label class="flex items-start">
                     <div class="flex-grow">
                         <div class="flex items-center mb-2">
-                            <svg class="w-4 h-4 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <svg aria-hidden="true" class="w-4 h-4 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
                             </svg>
                             <span class="font-semibold text-gray-900">Theme Preference</span>
@@ -635,43 +695,25 @@
                     </div>
                 </label>
             </div>
-
-            <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg border-2 border-gray-300">
-                <label class="flex items-start">
-                    <div class="flex-grow">
-                        <div class="flex items-center mb-2">
-                            <svg class="w-4 h-4 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="font-semibold text-gray-900">Clipboard Format</span>
-                        </div>
-                        <select id="mime_type" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black focus:outline-none bg-white text-gray-900">
-                            <option value="plaintext" selected>Plain Text</option>
-                            <option value="html">HTML (Clickable Links)</option>
-                        </select>
-                        <p class="text-sm text-gray-600 mt-2">Plain Text works everywhere. HTML creates clickable links in rich text editors and email clients.</p>
-                    </div>
-                </label>
-            </div>
         </div>
 
         <div class="mt-8 pt-6 border-t-2 border-gray-200">
             <h3 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Maintenance & Troubleshooting</h3>
             <div class="flex flex-wrap gap-3">
                 <button id="storage_health_check" class="px-5 py-2.5 text-sm font-semibold bg-black text-white hover:bg-gray-800 rounded-lg shadow-sm transition-all hover:shadow-md flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <svg aria-hidden="true" class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
                     Check Storage Health
                 </button>
                 <button id="repair_storage" class="px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg shadow-sm transition-all hover:shadow-md flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <svg aria-hidden="true" class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
                     </svg>
                     Repair Storage
                 </button>
                 <button id="reset_settings" class="px-5 py-2.5 text-sm font-semibold bg-gray-200 text-gray-800 hover:bg-red-100 hover:text-red-700 rounded-lg shadow-sm transition-all hover:shadow-md flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <svg aria-hidden="true" class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
                     </svg>
                     Reset to Defaults
@@ -681,7 +723,7 @@
 
         <div id="storage_status" class="mt-4 p-4 border-2 border-blue-200 rounded-lg hidden bg-blue-50">
             <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
-                <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg aria-hidden="true" class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                 </svg>
                 Storage Health Status
@@ -690,14 +732,18 @@
         </div>
 
         <div id="reset_confirmation" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm border-2 border-gray-200">
+            <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm border-2 border-gray-200"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="reset_dialog_title"
+                 aria-describedby="reset_dialog_desc">
                 <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-3">
-                    <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <svg aria-hidden="true" class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2 text-center">Reset All Settings?</h3>
-                <p class="mb-5 text-gray-600 text-center text-sm">This will restore all settings to their default values. This action cannot be undone.</p>
+                <h3 id="reset_dialog_title" class="text-xl font-bold text-gray-900 mb-2 text-center">Reset All Settings?</h3>
+                <p id="reset_dialog_desc" class="mb-5 text-gray-600 text-center text-sm">This will restore all settings to their default values. This action cannot be undone.</p>
                 <div class="flex gap-2">
                     <button id="cancel_reset" class="flex-1 px-4 py-2 text-sm font-semibold bg-gray-200 text-gray-800 hover:bg-gray-300 rounded-lg transition-colors">Cancel</button>
                     <button id="confirm_reset" class="flex-1 px-4 py-2 text-sm font-semibold bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors">Yes, Reset</button>
@@ -709,7 +755,7 @@
     <!-- Keyboard Shortcuts -->
     <div class="bg-white border-2 border-gray-200 p-5 rounded-xl mb-5 shadow-sm">
         <div class="flex items-center mb-3">
-            <svg class="w-5 h-5 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" class="w-5 h-5 text-gray-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
                 <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"/>
             </svg>
@@ -717,7 +763,7 @@
         </div>
         <p class="text-xs text-gray-600 mb-4">Speed up your workflow with keyboard commands.</p>
 
-        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 p-3 rounded-lg border border-amber-200 mb-4">
+        <div class="bg-gradient-to-r from-yellow-50 to-yellow-50 p-3 rounded-lg border border-yellow-200 mb-4">
             <label class="flex items-center cursor-pointer">
                 <input type="checkbox" id="enable_shortcuts" class="mr-2.5 w-4 h-4" checked>
                 <span class="font-semibold text-gray-900 text-sm">Enable Keyboard Shortcuts</span>
@@ -727,7 +773,7 @@
         <div class="space-y-2 mb-4">
             <div class="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg">
                 <div class="flex items-center">
-                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <svg aria-hidden="true" class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z"/>
                         <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z"/>
                     </svg>
@@ -737,7 +783,7 @@
             </div>
             <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <div class="flex items-center">
-                    <svg class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <svg aria-hidden="true" class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
                         <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
                     </svg>
@@ -748,7 +794,7 @@
         </div>
 
         <button id="customizeShortcuts" class="w-full px-4 py-3 text-sm font-semibold bg-black text-white hover:bg-gray-800 rounded-lg transition-colors flex items-center justify-center">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
             </svg>
             Customize Shortcuts in Chrome
@@ -758,14 +804,23 @@
     <!-- Footer -->
     <footer class="pt-4 mt-4 border-t border-gray-200">
         <div class="flex items-center justify-center space-x-2 text-xs text-gray-500">
-            <a href="https://github.com/Flozad" target="_blank" title="View source code on GitHub" class="hover:text-gray-900 hover:underline">GitHub</a>
+            <a href="https://github.com/Flozad" target="_blank" rel="noopener noreferrer" title="View source code on GitHub" class="hover:text-gray-900 hover:underline">GitHub</a>
             <span>|</span>
-            <a href="https://clasicwebtools.com" target="_blank" title="Visit developer website" class="hover:text-gray-900 hover:underline">My site</a>
+            <a href="https://clasicwebtools.com" target="_blank" rel="noopener noreferrer" title="Visit developer website" class="hover:text-gray-900 hover:underline">My site</a>
             <span>|</span>
-            <a href="https://twitter.com/lozards" target="_blank" title="Follow on Twitter" class="hover:text-gray-900 hover:underline">Twitter</a>
+            <a href="https://twitter.com/lozards" target="_blank" rel="noopener noreferrer" title="Follow on Twitter" class="hover:text-gray-900 hover:underline">Twitter</a>
+            <span>|</span>
+            <span id="year_footer"></span>
         </div>
     </footer>
 </div>
+
+<!-- Toast host. Present in the markup from first paint so screen readers are
+     already observing it when a message arrives. -->
+<div id="message_live_region"
+     aria-live="polite"
+     aria-atomic="true"
+     style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
 
 </body>
 </html>

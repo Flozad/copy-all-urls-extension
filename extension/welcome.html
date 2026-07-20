@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Welcome | Umbrella - Copy All URLs</title>
+        <style>
+            /* Self-contained: this page deliberately does not load the Tailwind
+               bundle, so the first screen after install paints immediately. */
+            :root {
+                --bg: #ffffff;
+                --fg: #0f0f0f;
+                --muted: #5c5c5c;
+                --line: #e2e2e2;
+                --card: #fafafa;
+                --kbd-bg: #f0f0f0;
+            }
+
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --bg: #0f0f0f;
+                    --fg: #e5e5e5;
+                    --muted: #a1a1a1;
+                    --line: #2a2a2a;
+                    --card: #171717;
+                    --kbd-bg: #242424;
+                }
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                padding: 64px 24px 96px;
+                background: var(--bg);
+                color: var(--fg);
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    "Helvetica Neue", Arial, sans-serif;
+                line-height: 1.6;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            main {
+                max-width: 640px;
+                margin: 0 auto;
+            }
+
+            .mark {
+                width: 48px;
+                height: 48px;
+                margin-bottom: 28px;
+            }
+
+            h1 {
+                font-size: 32px;
+                line-height: 1.2;
+                letter-spacing: -0.02em;
+                margin: 0 0 12px;
+                font-weight: 600;
+            }
+
+            .lede {
+                font-size: 17px;
+                color: var(--muted);
+                margin: 0 0 48px;
+            }
+
+            h2 {
+                font-size: 13px;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--muted);
+                font-weight: 600;
+                margin: 0 0 16px;
+            }
+
+            section {
+                margin-bottom: 44px;
+            }
+
+            ol {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+                counter-reset: step;
+            }
+
+            ol li {
+                counter-increment: step;
+                position: relative;
+                padding: 0 0 0 40px;
+                margin-bottom: 20px;
+            }
+
+            ol li::before {
+                content: counter(step);
+                position: absolute;
+                left: 0;
+                top: 1px;
+                width: 24px;
+                height: 24px;
+                border: 1px solid var(--line);
+                border-radius: 50%;
+                font-size: 12px;
+                font-variant-numeric: tabular-nums;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--muted);
+            }
+
+            li strong {
+                font-weight: 600;
+            }
+
+            li p {
+                margin: 2px 0 0;
+                color: var(--muted);
+                font-size: 15px;
+            }
+
+            kbd {
+                display: inline-block;
+                padding: 2px 7px;
+                border: 1px solid var(--line);
+                border-bottom-width: 2px;
+                border-radius: 5px;
+                background: var(--kbd-bg);
+                font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+                    monospace;
+                font-size: 12px;
+                line-height: 1.5;
+                color: var(--fg);
+                white-space: nowrap;
+            }
+
+            .privacy {
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                background: var(--card);
+                padding: 20px 24px;
+                font-size: 15px;
+                color: var(--muted);
+            }
+
+            .privacy p {
+                margin: 0;
+            }
+
+            .actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .btn {
+                display: inline-block;
+                padding: 10px 18px;
+                border-radius: 8px;
+                font-size: 15px;
+                font-weight: 500;
+                text-decoration: none;
+                border: 1px solid var(--fg);
+                background: var(--fg);
+                color: var(--bg);
+                cursor: pointer;
+                font-family: inherit;
+            }
+
+            .btn.secondary {
+                background: transparent;
+                color: var(--fg);
+                border-color: var(--line);
+            }
+
+            .btn:hover {
+                opacity: 0.85;
+            }
+
+            a:focus-visible,
+            .btn:focus-visible {
+                outline: 2px solid currentColor;
+                outline-offset: 2px;
+            }
+
+            footer {
+                margin-top: 56px;
+                padding-top: 24px;
+                border-top: 1px solid var(--line);
+                font-size: 14px;
+                color: var(--muted);
+            }
+
+            footer a {
+                color: var(--muted);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                * {
+                    transition: none !important;
+                    animation: none !important;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <img
+                class="mark"
+                src="icon-128.png"
+                alt="Umbrella"
+                width="48"
+                height="48"
+            />
+
+            <h1>Umbrella is ready</h1>
+            <p class="lede">
+                Copy every open tab to your clipboard, and paste a list of links
+                to reopen them. Here are the three things worth knowing.
+            </p>
+
+            <section>
+                <h2>Getting started</h2>
+                <ol>
+                    <li>
+                        <strong>Copy all your tabs</strong>
+                        <p>
+                            Click the Umbrella icon in your toolbar, or press
+                            <kbd id="kbdCopy">Ctrl+Shift+U</kbd>. Every open tab
+                            lands on your clipboard.
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Paste a list to reopen it</strong>
+                        <p>
+                            Press <kbd id="kbdPaste">Ctrl+Shift+Y</kbd>, or use
+                            Paste in the popup, and Umbrella opens each link in
+                            a new tab. Right-clicking any page gives you both
+                            actions too.
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Pick your format</strong>
+                        <p>
+                            URL only, text, HTML, JSON, delimited, or a custom
+                            template using <code>$url</code>, <code>$title</code
+                            >, and <code>$date</code>. Set a default in Settings.
+                        </p>
+                    </li>
+                </ol>
+            </section>
+
+            <section>
+                <h2>Your data</h2>
+                <div class="privacy">
+                    <p>
+                        Umbrella works entirely on your device. It requests no
+                        host permissions, loads nothing from the network, and
+                        never transmits your URLs or clipboard contents
+                        anywhere.
+                    </p>
+                </div>
+            </section>
+
+            <section>
+                <h2>Next</h2>
+                <div class="actions">
+                    <button class="btn" id="openOptions" type="button">
+                        Open Settings
+                    </button>
+                    <a
+                        class="btn secondary"
+                        href="https://tabs.clasicwebtools.com/docs"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >Read the docs</a
+                    >
+                </div>
+            </section>
+
+            <footer>
+                Change the keyboard shortcuts any time at
+                <code>chrome://extensions/shortcuts</code>. Questions or a bug?
+                <a
+                    href="mailto:clasicwebtools@gmail.com?subject=Umbrella Extension Feedback"
+                    >Send feedback</a
+                >.
+            </footer>
+        </main>
+        <script src="welcome.js"></script>
+    </body>
+</html>
