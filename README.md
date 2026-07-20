@@ -1,70 +1,81 @@
-# Copy All URLs Chrome Extension
+# Umbrella — Copy All URLs
 
-This Chrome extension allows users to copy the URLs of all open tabs or selected tabs, and paste them to open new tabs. It's based on the original **CopyAllURLs** extension, with enhancements and custom features.
+Umbrella is a Chrome extension (Manifest V3) that lets you **save and restore browser tabs instantly**. Copy the URLs of all open tabs — or just the selected ones — in multiple formats, then paste them back to reopen everything in one go.
+
+It began as an enhanced fork of the original **CopyAllURLs** extension and has since grown its own feature set, settings UI, and marketing site.
+
+## Repository layout
+
+This repo holds three independent projects:
+
+| Path             | What it is                                                                 |
+|------------------|---------------------------------------------------------------------------|
+| `extension/`     | The Chrome extension itself (Manifest V3, vanilla JS). This is the product. |
+| `umbrella-docs/` | The marketing + documentation site (Next.js, deployed to Vercel).          |
+| `store-assets/`  | Chrome Web Store listing assets (screenshots, promo tiles, icon source).    |
+| `motion/`        | Remotion project for promotional/demo videos.                              |
+
+If you only care about the extension, everything you need is in `extension/`.
 
 ## Features
 
-- Copy URLs in different formats: text, HTML, JSON, custom
-- Paste URLs to open them in new tabs
-- Option to include all Chrome windows
-- Set default actions and MIME types
-- Customizable settings for more control
-- Robust storage system with fallback mechanisms
-- Built-in storage health check and repair tools
-- Smart error handling with user-friendly notifications
+- Copy URLs in multiple formats: text, HTML, JSON, and custom templates
+- Paste URLs to reopen them as new tabs
+- Optionally include every Chrome window
+- Keyboard shortcuts and a right-click context menu
+- Auto-copy on demand
+- Configurable default actions and MIME types
+- Robust storage with sync/local fallback, plus a built-in health check and repair tool
+- Friendly error handling and notifications
 
-## Installation
+## Installing the extension (from source)
 
 1. Clone or download this repository
-2. Open `chrome://extensions/` in your Chrome browser
-3. Enable "Developer mode" in the top right corner
-4. Click "Load unpacked" and select the directory where you cloned/downloaded this repository
+2. Open `chrome://extensions/` in Chrome
+3. Enable **Developer mode** (top right)
+4. Click **Load unpacked** and select the `extension/` directory
+
+Or install the published version from the Chrome Web Store (see the [docs site](./umbrella-docs)).
 
 ## Usage
 
-- Click the extension icon in the Chrome toolbar
-- Use the popup to copy or paste URLs
-- Go to the "Options" page to customize settings
-- Use the storage health check tool if settings aren't persisting
-- Use the repair tool to fix any storage issues
+- Click the Umbrella icon in the toolbar to copy or paste URLs from the popup
+- Use the keyboard shortcuts (`Ctrl/Cmd+Shift+U` to copy, `Ctrl/Cmd+Shift+Y` to paste)
+- Right-click a page to use the context-menu actions
+- Open the **Options** page to customize formats, templates, and behavior
+- If settings ever fail to persist, use the storage **Health Check** and **Repair** tools on the Options page
 
-### Advanced Features
+### Custom formatting
 
-#### Storage Management
-- **Health Check**: Verify the status of both sync and local storage
-- **Repair Tool**: Fix storage issues and restore default settings
-- **Fallback System**: Automatic fallback to local storage if sync fails
+Custom templates support variables: `$url`, `$title`, `$date`. Formats include text, HTML, JSON, and delimited output with configurable delimiters.
 
-#### Custom Formatting
-- Use custom templates with variables: $url, $title, $date
-- Multiple format options: text, HTML, JSON, delimited
-- Configurable delimiters for separated values
+## Permissions
 
-#### Settings Persistence
-- Robust storage system with retry mechanism
-- Automatic error recovery
-- User-friendly notifications for all operations
+Umbrella requests only what it needs: `tabs`, `storage`, `clipboardRead`, `clipboardWrite`, `contextMenus`, and `offscreen`. It has **no host permissions**, loads no remote code, and its content security policy is restricted to `'self'`. URLs and clipboard contents never leave your browser.
 
-## Troubleshooting
+## Docs site
 
-If you experience issues with settings not being saved:
+The `umbrella-docs/` folder is a standalone Next.js app. To run it locally:
 
-1. Go to the Options page
-2. Click "Check Storage Health" to diagnose any issues
-3. Use the "Repair Storage" tool if problems are detected
-4. Check the extension's console for detailed error messages
+```bash
+cd umbrella-docs
+bun install
+bun run dev
+```
+
+Then open http://localhost:3000.
+
+## Version history
+
+See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Contributing
 
-Contributions are welcome! Please fork this repository, make your changes, and submit a pull request.
-
-## Version History
-
-See [CHANGELOG.md](./CHANGELOG.md) for detailed version history and changes.
+Contributions are welcome — fork the repo, make your changes, and open a pull request.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for more details.
+MIT — see [LICENSE](./LICENSE).
 
 ## Acknowledgments
 

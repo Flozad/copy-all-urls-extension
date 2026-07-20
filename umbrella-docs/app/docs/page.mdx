@@ -1,3 +1,5 @@
+import { Shot } from '@/components/shot';
+
 export const metadata = {
   title: 'Getting Started - Umbrella Chrome Extension Documentation',
   description:
@@ -36,6 +38,13 @@ Once installed, you can start using Umbrella immediately:
 2. URLs from all open tabs are automatically copied to your clipboard
 3. Click **Paste URLs** to open URLs from your clipboard in new tabs
 
+<Shot
+  shape="wide"
+  src="hero-demo"
+  ariaLabel="A window full of tabs copied to the clipboard in one click, then pasted back into a fresh window so every tab re-opens."
+  caption="The whole loop in one take: copy a window full of tabs, paste them back, and the session returns."
+/>
+
 ## Basic Usage
 
 ### Copy URLs
@@ -46,6 +55,13 @@ There are multiple ways to copy URLs:
 - **Keyboard Shortcut**: Press `Ctrl+Shift+U` (Windows/Linux) or `Cmd+Shift+U` (Mac)
 - **Context Menu**: Right-click anywhere and select "Copy URLs"
 
+<Shot
+  shape="panel"
+  src="tour-copy"
+  ariaLabel="The Umbrella popup opens, lists every tab in the window, and copies them all to the clipboard."
+  caption="Open the popup and every tab in the window lands on your clipboard."
+/>
+
 ### Paste URLs
 
 To open URLs from your clipboard:
@@ -53,6 +69,13 @@ To open URLs from your clipboard:
 - **Popup**: Click the extension icon and then click "Paste URLs"
 - **Keyboard Shortcut**: Press `Ctrl+Shift+Y` (Windows/Linux) or `Cmd+Shift+Y` (Mac)
 - **Context Menu**: Right-click anywhere and select "Paste URLs"
+
+<Shot
+  shape="wide"
+  src="tour-paste"
+  ariaLabel="A list of URLs on the clipboard is pasted back through Umbrella and each one re-opens as a tab."
+  caption="Paste re-opens every URL from your clipboard as a tab — a closed session, restored."
+/>
 
 ## Configuration
 

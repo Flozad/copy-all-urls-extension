@@ -1,0 +1,25 @@
+{
+  "name": "umbrella-motion",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Remotion compositions and store stills for Umbrella — Copy All URLs. Synthetic product recordings and Chrome Web Store artwork.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "bun run scripts/render-all.ts",
+    "stills": "bun run scripts/render-all.ts --stills",
+    "clips": "bun run scripts/render-all.ts --clips",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.410",
+    "@remotion/google-fonts": "4.0.410",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.410"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "@types/react": "19.1.0",
+    "typescript": "5.8.3"
+  }
+}

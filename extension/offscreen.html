@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Clipboard</title>
+</head>
+<body>
+  <!--
+    Offscreen document. It is never shown; it exists only so the service worker
+    has a DOM context that can touch the clipboard (service workers cannot).
+  -->
+  <textarea id="clipboard-write"></textarea>
+  <div id="clipboard-read" contenteditable="true"></div>
+  <script src="offscreen.js"></script>
+</body>
+</html>

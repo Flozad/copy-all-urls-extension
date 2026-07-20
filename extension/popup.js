@@ -118,7 +118,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (item.types.includes('text/plain')) {
               const textBlob = await item.getType('text/plain');
               content = await textBlob.text();
-              console.log('Read plain text from clipboard');
               break;
             }
 
@@ -126,12 +125,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (item.types.includes('text/html')) {
               const htmlBlob = await item.getType('text/html');
               content = await htmlBlob.text();
-              console.log('Read HTML from clipboard (plain text not available)');
               break;
             }
           }
         } catch (e) {
-          console.log('Clipboard.read() failed, falling back to readText():', e);
+          console.warn('Clipboard.read() failed, falling back to readText():', e);
           // Fallback to simple text reading
           content = await navigator.clipboard.readText();
         }

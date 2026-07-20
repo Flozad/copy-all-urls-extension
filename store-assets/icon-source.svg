@@ -1,0 +1,28 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- transparent background -->
+
+  <!-- document page: white fill, deep-navy frame, rounded corners, folded top-right -->
+  <path d="M 376 214
+           L 606 214
+           L 810 418
+           L 810 750
+           Q 810 810 750 810
+           L 376 810
+           Q 316 810 316 750
+           L 316 274
+           Q 316 214 376 214 Z"
+        fill="#FFFFFF"
+        stroke="#1C2A45" stroke-width="54" stroke-linejoin="round"/>
+
+  <!-- dog-ear fold flap -->
+  <path d="M 606 214 L 606 418 L 810 418 Z"
+        fill="#E9EDF4"
+        stroke="#1C2A45" stroke-width="48" stroke-linejoin="round"/>
+
+  <!-- three text lines -->
+  <g stroke="#1C2A45" stroke-width="50" stroke-linecap="round">
+    <line x1="410" y1="548" x2="716" y2="548"/>
+    <line x1="410" y1="636" x2="716" y2="636"/>
+    <line x1="410" y1="724" x2="602" y2="724"/>
+  </g>
+</svg>
