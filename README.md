@@ -67,6 +67,28 @@ bun run dev
 
 Then open http://localhost:3000.
 
+## Development
+
+| Command | What it does | Requires |
+|---|---|---|
+| `npm test` | Runs the full suite (Node's built-in runner + jsdom). | — |
+| `npm run build:zip` | Packages `extension/` for the Web Store, named from the manifest version. | — |
+| `npm run check:listing` | Validates `store-assets/LISTING.md` against the Web Store's title/summary limits and copy rules. | — |
+| `npm run build:icons` | Regenerates every extension and store icon from `store-assets/icon-master.png`. | **Python 3 + [Pillow](https://pypi.org/project/Pillow/)** |
+
+`build:icons` is the only task with a dependency outside npm. Install it with:
+
+```bash
+python3 -m pip install Pillow
+```
+
+Then verify the committed icons match the Web Store's 96-in-128 spec without
+rewriting them:
+
+```bash
+python3 tools/build-icons.py --check
+```
+
 ## Version history
 
 See [CHANGELOG.md](./CHANGELOG.md).

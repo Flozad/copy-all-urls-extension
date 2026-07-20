@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "test": "node --test 'test/**/*.test.js'",
-    "build:zip": "node tools/build-zip.js"
+    "build:zip": "node tools/build-zip.js",
+    "check:listing": "node tools/check-listing.js",
+    "build:icons": "python3 tools/build-icons.py"
   },
   "devDependencies": {
     "jsdom": "^24.1.3"
