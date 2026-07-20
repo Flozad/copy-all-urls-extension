@@ -386,6 +386,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
+            // Re-stamp the schema. sync.clear() above wiped the marker, and a
+            // profile without one looks like a pre-1.13.0 profile to the
+            // onInstalled migration — which would then reset `anchor` on the
+            // next update, silently discarding a choice made here after a reset.
+            await StorageUtil.setWithFallback('schemaVersion', SCHEMA_VERSION);
+
             // Put copy history / paste source back now that defaults are in place.
             await restorePreservedLocalData(preserved);
 
@@ -699,6 +705,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 for (const [key, value] of Object.entries(defaultSettings)) {
                     await StorageUtil.setWithFallback(key, value);
                 }
+                // Re-stamp the schema for the same reason the reset flow does:
+                // sync.clear() wiped the marker, and an unstamped profile looks
+                // pre-1.13.0 to the onInstalled migration.
+                await StorageUtil.setWithFallback('schemaVersion', SCHEMA_VERSION);
                 repairResults.settingsRestored = true;
             } catch (error) {
                 repairResults.errors.push(`Failed to restore settings: ${error.message}`);

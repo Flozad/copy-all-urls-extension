@@ -19,6 +19,12 @@ const FORMATS = ['text', 'html', 'json', 'url_only', 'delimited', 'custom'];
 const sync = (o) => o.chrome.storage.sync._data;
 const local = (o) => o.chrome.storage.local._data;
 const plain = (value) => JSON.parse(JSON.stringify(value));
+
+// What sync should hold after a reset or repair: the defaults plus the schema
+// marker. Both flows clear sync first, so they must re-stamp it — an unstamped
+// profile reads as pre-1.13.0 to the onInstalled migration, which would then
+// reset `anchor` on the next update.
+const RESTORED_SYNC = { ...DEFAULT_SETTINGS, schemaVersion: DEFAULT_SETTINGS.SCHEMA_VERSION };
 const messages = (o) => [...o.document.querySelectorAll('.message')].map((m) => m.textContent);
 const errors = (o) => [...o.document.querySelectorAll('.message.error')].map((m) => m.textContent);
 
@@ -355,7 +361,7 @@ test('#confirm_reset restores every default and preserves copy history + paste s
   await o.click('confirm_reset');
   await o.flush(60);
 
-  assert.deepEqual(plain(sync(o)), plain(DEFAULT_SETTINGS),
+  assert.deepEqual(plain(sync(o)), plain(RESTORED_SYNC),
     'sync holds exactly DEFAULT_SETTINGS — stray legacy keys are gone');
 
   // The critical bit: these are user DATA, not settings, and nothing could
@@ -375,7 +381,7 @@ test('#confirm_reset copes with a profile that has nothing to preserve', async (
   await o.click('confirm_reset');
   await o.flush(60);
 
-  assert.deepEqual(plain(sync(o)), plain(DEFAULT_SETTINGS));
+  assert.deepEqual(plain(sync(o)), plain(RESTORED_SYNC));
   assert.deepEqual(plain(local(o)), {});
 });
 
@@ -392,7 +398,7 @@ test('#repair_storage restores defaults and preserves copy history + paste sourc
   await o.click('repair_storage');
   await o.flush(60);
 
-  assert.deepEqual(plain(sync(o)), plain(DEFAULT_SETTINGS));
+  assert.deepEqual(plain(sync(o)), plain(RESTORED_SYNC));
   assert.deepEqual(plain(local(o).copyHistory), plain(PRESERVED_LOCAL.copyHistory),
     'copy history survived the repair');
   assert.equal(local(o).pasteSource, 'textarea', 'paste source survived the repair');
