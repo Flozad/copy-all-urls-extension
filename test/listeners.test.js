@@ -9,6 +9,7 @@ const assert = require('node:assert/strict');
 const { createChrome } = require('./helpers/chrome-mock');
 const { loadBackground } = require('./helpers/harness');
 const DEFAULT_SETTINGS = require('../extension/utils/defaults.js');
+const { SCHEMA_VERSION } = DEFAULT_SETTINGS;
 
 const TABS = [
   { title: 'One', url: 'https://one.test/', highlighted: true },
@@ -87,7 +88,9 @@ test('onInstalled seeds only the missing defaults and never overwrites user valu
     if (key in userValues) continue;
     assert.deepEqual(stored[key], value, `${key} seeded from DEFAULT_SETTINGS`);
   }
-  assert.equal(Object.keys(stored).length, Object.keys(DEFAULT_SETTINGS).length);
+  // Every default, plus the schema marker — and nothing else.
+  assert.equal(Object.keys(stored).length, Object.keys(DEFAULT_SETTINGS).length + 1);
+  assert.equal(stored.schemaVersion, SCHEMA_VERSION);
 });
 
 test('onInstalled opens the welcome page on a first install', async () => {
@@ -120,6 +123,9 @@ test('onInstalled writes nothing when every default key already exists', async (
   for (const key of Object.keys(DEFAULT_SETTINGS)) {
     chrome.storage.sync._data[key] = 'preserved';
   }
+  // Already at the current schema, so the one-time migration is not due and
+  // this stays a pure no-op.
+  chrome.storage.sync._data.schemaVersion = SCHEMA_VERSION;
   const setCalls = [];
   const realSet = chrome.storage.sync.set.bind(chrome.storage.sync);
   chrome.storage.sync.set = (items, cb) => {
@@ -158,6 +164,109 @@ test('onInstalled early-returns and seeds nothing when runtime.lastError is set'
   assert.deepEqual(chrome._lastErrors, ['storage unavailable'], 'lastError was set during the get');
   assert.deepEqual(setCalls, [], 'no defaults written');
   assert.deepEqual(chrome.storage.sync._data, {}, 'storage untouched');
+});
+
+// ---------------------------------------------------------------------------
+// runtime.onInstalled — schema 2 migration
+// ---------------------------------------------------------------------------
+
+// A profile as it exists on a machine that installed before August 2025: the
+// old handler wrote the whole defaults object in, including keys that were
+// later dropped from DEFAULT_SETTINGS but never removed from storage.
+function legacyProfile(extra = {}) {
+  return {
+    format: 'html',
+    anchor: 'url',
+    mime: 'text/plain',
+    mimeType: 'plaintext',
+    defaultBehavior: 'copy',
+    ...extra
+  };
+}
+
+test('migration clears a stale anchor so long-time profiles keep title link text', async () => {
+  // The regression this exists to prevent: `anchor` was inert for years, so a
+  // stored 'url' never changed output. getCopySettings() honours it now, which
+  // would silently switch HTML copies from the page title to the raw URL.
+  const chrome = createChrome({ tabs: TABS });
+  Object.assign(chrome.storage.sync._data, legacyProfile());
+
+  loadBackground(chrome);
+  await chrome.runtime._fireInstalled({ reason: 'update' });
+  await flush();
+
+  assert.equal(chrome.storage.sync._data.anchor, 'title', 'anchor is back at the default');
+  assert.equal(chrome.storage.sync._data.schemaVersion, SCHEMA_VERSION, 'schema stamped');
+});
+
+test('migration removes the keys nothing ever read', async () => {
+  const chrome = createChrome({ tabs: TABS });
+  Object.assign(chrome.storage.sync._data, legacyProfile());
+
+  loadBackground(chrome);
+  await chrome.runtime._fireInstalled({ reason: 'update' });
+  await flush();
+
+  for (const dead of ['mime', 'mimeType', 'defaultBehavior']) {
+    assert.ok(!(dead in chrome.storage.sync._data), `${dead} removed`);
+  }
+});
+
+test('migration preserves every real preference alongside the anchor reset', async () => {
+  // The whole point of the 1.12.1 fix was that updates stop clobbering
+  // settings; the migration must not reintroduce that for unrelated keys.
+  const chrome = createChrome({ tabs: TABS });
+  Object.assign(chrome.storage.sync._data, legacyProfile({
+    format: 'json',
+    delimiter: '|',
+    customTemplate: '$title',
+    theme: 'dark',
+    smartPaste: false
+  }));
+
+  loadBackground(chrome);
+  await chrome.runtime._fireInstalled({ reason: 'update' });
+  await flush();
+
+  const stored = chrome.storage.sync._data;
+  assert.equal(stored.format, 'json');
+  assert.equal(stored.delimiter, '|');
+  assert.equal(stored.customTemplate, '$title');
+  assert.equal(stored.theme, 'dark');
+  assert.equal(stored.smartPaste, false);
+});
+
+test('migration runs once and never overrides a deliberate later anchor choice', async () => {
+  // Once the schema is stamped, 'url' can only have come from the options page
+  // in a version that actually honours it — so a later update must leave it be.
+  const chrome = createChrome({ tabs: TABS });
+  Object.assign(chrome.storage.sync._data, {
+    ...DEFAULT_SETTINGS,
+    anchor: 'url',
+    schemaVersion: SCHEMA_VERSION
+  });
+
+  loadBackground(chrome);
+  await chrome.runtime._fireInstalled({ reason: 'update' });
+  await flush();
+
+  assert.equal(chrome.storage.sync._data.anchor, 'url', 'deliberate choice survives');
+});
+
+test('a fresh install is stamped at the current schema without a migration pass', async () => {
+  const chrome = createChrome({ tabs: TABS });
+
+  loadBackground(chrome);
+  await chrome.runtime._fireInstalled({ reason: 'install' });
+  await flush();
+
+  const stored = chrome.storage.sync._data;
+  assert.equal(stored.schemaVersion, SCHEMA_VERSION);
+  assert.equal(stored.anchor, DEFAULT_SETTINGS.anchor);
+  // Nothing retired should ever appear in a brand new profile.
+  for (const dead of ['mime', 'mimeType', 'defaultBehavior']) {
+    assert.ok(!(dead in stored), `${dead} never seeded`);
+  }
 });
 
 test('onInstalled initialises the context menus', async () => {

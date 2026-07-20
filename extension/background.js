@@ -143,6 +143,27 @@ async function updateContextMenus() {
   }
 }
 
+// Keys retired in schema 2, all of them written by versions that predate
+// 1.13.0.
+//
+// `anchor` is the one that matters. It sat in DEFAULT_SETTINGS until August
+// 2025, and the onInstalled handler of that era called
+// chrome.storage.sync.set(DEFAULT_SETTINGS) unconditionally on every install
+// AND every update. Because .set() merges rather than replaces, every profile
+// created before then still carries a stored 'url' — and the key was dropped
+// from the defaults without ever being removed from storage.
+//
+// Nothing read `anchor` for that entire period, so the stored value never
+// affected output. 1.13.0 honours it for the first time in getCopySettings().
+// Left alone, that would silently flip HTML link text from the page title to
+// the raw URL for precisely the oldest profiles. Clearing it restores the
+// 'title' default, which is what those profiles have actually been emitting
+// all along — preserving observed behaviour rather than an intent the user was
+// never able to observe.
+//
+// The other three were dead in every version that wrote them.
+const SCHEMA_2_DROPPED = ['anchor', 'mime', 'mimeType', 'defaultBehavior'];
+
 chrome.runtime.onInstalled.addListener(async (details) => {
   // onInstalled fires on extension updates and Chrome updates too, not just
   // first install. Only fill in settings the user doesn't already have,
@@ -153,15 +174,38 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       return;
     }
 
-    const missingDefaults = {};
+    // An empty profile is a fresh install: there is no legacy value to
+    // migrate, so stamp it at the current schema and skip straight to seeding.
+    const isNewProfile = Object.keys(existing).length === 0;
+    const schema = isNewProfile ? SCHEMA_VERSION : (existing.schemaVersion || 1);
+
+    // Only the retired keys this profile actually has need removing.
+    const stale = schema < 2 ? SCHEMA_2_DROPPED.filter((key) => key in existing) : [];
+
+    const updates = {};
     for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
-      if (!(key in existing)) {
-        missingDefaults[key] = value;
+      // Seed anything absent, and restore the default for any still-live
+      // setting the migration just dropped (`anchor` returns as 'title').
+      if (!(key in existing) || stale.includes(key)) {
+        updates[key] = value;
       }
     }
+    // Only stamp when it would actually change, so an already-migrated profile
+    // with nothing missing still writes nothing at all.
+    if (schema !== existing.schemaVersion) {
+      updates.schemaVersion = SCHEMA_VERSION;
+    }
 
-    if (Object.keys(missingDefaults).length > 0) {
-      chrome.storage.sync.set(missingDefaults);
+    const seed = () => {
+      if (Object.keys(updates).length > 0) {
+        chrome.storage.sync.set(updates);
+      }
+    };
+
+    if (stale.length > 0) {
+      chrome.storage.sync.remove(stale, seed);
+    } else {
+      seed();
     }
   });
 

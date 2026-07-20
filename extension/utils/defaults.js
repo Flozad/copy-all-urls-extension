@@ -43,12 +43,28 @@ const DEFAULT_SETTINGS = {
   bold: false  // Wrap titles in <strong> tags for HTML format
 };
 
+/**
+ * Bumped whenever a stored key changes meaning or is retired, so onInstalled
+ * can run a one-time migration and know not to run it a second time.
+ *
+ * Deliberately NOT a member of DEFAULT_SETTINGS: the seeding loop iterates that
+ * object, and a schema marker is bookkeeping rather than a user preference.
+ */
+const SCHEMA_VERSION = 2;
+
 // Make available globally for all scripts
 if (typeof window !== 'undefined') {
   window.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
+  window.SCHEMA_VERSION = SCHEMA_VERSION;
 }
 
 // Make available for ES6 modules
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = DEFAULT_SETTINGS;
+  // Non-enumerable: Object.keys/entries(DEFAULT_SETTINGS) drives both the
+  // seeding loop and several tests, and neither should ever see this as a
+  // setting. It is reachable as require('.../defaults.js').SCHEMA_VERSION.
+  Object.defineProperty(module.exports, 'SCHEMA_VERSION', {
+    value: SCHEMA_VERSION
+  });
 }
