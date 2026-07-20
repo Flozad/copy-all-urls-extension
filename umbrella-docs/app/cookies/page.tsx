@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { CookiePreferencesLink } from '@/components/cookie-consent';
 
 export const metadata: Metadata = {
   title: 'Cookie Policy',
@@ -16,7 +17,7 @@ export default function CookiesPage() {
       <article className="prose prose-lg prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-5xl prose-h1:mb-4 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-p:leading-relaxed prose-a:text-black prose-a:underline prose-a:decoration-2 prose-a:underline-offset-4 hover:prose-a:decoration-gray-400 prose-a:transition-colors prose-li:leading-relaxed">
         <h1>Cookie Policy</h1>
         <p className="text-sm text-gray-500">
-          Last updated: February 7, 2026
+          Last updated: July 20, 2026
         </p>
 
         <p>
@@ -117,7 +118,17 @@ export default function CookiesPage() {
           used:
         </p>
 
-        <h3>3.1 Browser Settings</h3>
+        <h3>3.1 Consent Banner</h3>
+        <p>
+          When you first visit this Website you are asked whether to allow
+          analytics cookies. No analytics cookies are set unless you accept. You
+          can change your answer at any time by reopening your{' '}
+          <CookiePreferencesLink />. Withdrawing consent stops further analytics
+          collection and deletes the Google Analytics cookies already stored on
+          your device.
+        </p>
+
+        <h3>3.2 Browser Settings</h3>
         <p>
           Most web browsers allow you to manage cookies through their settings.
           You can typically:
@@ -136,7 +147,7 @@ export default function CookiesPage() {
           cookies).
         </p>
 
-        <h3>3.2 Google Analytics Opt-Out</h3>
+        <h3>3.3 Google Analytics Opt-Out</h3>
         <p>
           You can specifically opt out of Google Analytics tracking by:
         </p>
@@ -164,11 +175,13 @@ export default function CookiesPage() {
           </li>
         </ul>
 
-        <h3>3.3 Do Not Track</h3>
+        <h3>3.4 Do Not Track</h3>
         <p>
           We respect the &quot;Do Not Track&quot; (DNT) browser signal. If your
-          browser sends a DNT signal, we honor that preference where
-          technically feasible.
+          browser sends a DNT signal, we treat it as a refusal of analytics
+          cookies: the consent banner is not shown, and no analytics cookies are
+          set unless you later opt in yourself through your{' '}
+          <CookiePreferencesLink />.
         </p>
 
         <h2>4. Legal Basis for Cookies (EU/EEA/UK Users)</h2>
@@ -184,9 +197,13 @@ export default function CookiesPage() {
           </li>
           <li>
             <strong>Analytics cookies</strong> require your consent before
-            being placed on your device. If we implement analytics, we will
-            obtain your consent through a clearly visible cookie consent
-            mechanism before setting non-essential cookies.
+            being placed on your device. We obtain that consent through a
+            clearly visible banner shown on your first visit, and set no
+            analytics cookies until you accept. The Google Analytics script is
+            not loaded at all unless you opt in, so no data — not even a
+            cookieless request — is sent to Google beforehand. Google Consent
+            Mode additionally denies analytics storage by default. You can
+            withdraw consent at any time.
           </li>
         </ul>
 
@@ -196,9 +213,13 @@ export default function CookiesPage() {
         </p>
         <ul>
           <li>
-            <strong>Local Storage</strong>: The Website does not currently use
-            browser local storage. The Extension uses Chrome&apos;s{' '}
-            <code>storage</code> API (not local storage) for user preferences.
+            <strong>Local Storage</strong>: The Website stores a single value
+            in browser local storage (<code>umbrella:cookie-consent</code>) to
+            remember your cookie choice so you are not asked again on every
+            visit. It records only &quot;granted&quot; or &quot;denied&quot;,
+            contains no identifier, and is never transmitted to us or to any
+            third party. The Extension uses Chrome&apos;s <code>storage</code>{' '}
+            API (not local storage) for user preferences.
           </li>
           <li>
             <strong>Pixels and Beacons</strong>: The Website does not use
