@@ -254,7 +254,6 @@ function Dial({ index }: { index: number }) {
   return (
     <span className="u-dial" aria-hidden="true">
       <svg viewBox="0 0 100 100" focusable="false">
-        <title>Step {index + 1}</title>
         <circle className="track" cx="50" cy="50" r="34" />
         <circle className="arc" cx="50" cy="50" r="34" pathLength={4} />
       </svg>
