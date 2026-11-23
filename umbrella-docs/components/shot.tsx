@@ -42,6 +42,10 @@ export function Shot({
     if (!video) {
       return;
     }
+    // Muted is set here, not in the JSX: an SSR'd muted="" attribute is dropped
+    // during hydration (React sets the property instead), and that mismatch
+    // re-renders the whole page. The clips only ever play from this effect.
+    video.muted = true;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return;
     }
@@ -88,7 +92,6 @@ export function Shot({
           ref={ref}
           src={`/motion/${src}.mp4`}
           poster={`/motion/${src}.jpg`}
-          muted
           loop
           playsInline
           preload="none"
