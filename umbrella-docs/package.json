@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "bun test",
+    "test": "bun test && NODE_ENV=production bun test",
     "lint": "bun x ultracite check",
     "format": "bun x ultracite fix"
   },

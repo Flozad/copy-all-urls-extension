@@ -76,17 +76,18 @@ test('the landing page hydrates with no server/client mismatch', async () => {
     { virtualConsole: new VirtualConsole(), pretendToBeVisual: true }
   );
   const restore = adoptWindow(dom.window);
-  const errors: string[] = [];
+  const recoverable: string[] = [];
+  const consoleErrors: string[] = [];
   const origError = console.error;
   console.error = (...args: unknown[]) => {
-    errors.push(args.map(String).join(' '));
+    consoleErrors.push(args.map(String).join(' '));
   };
   try {
     const { hydrateRoot } = await import('react-dom/client');
     const container = dom.window.document.getElementById('root');
     if (!container) throw new Error('no #root to hydrate');
     const root = hydrateRoot(container, <HomePage />, {
-      onRecoverableError: (error) => errors.push(String(error)),
+      onRecoverableError: (error) => recoverable.push(String(error)),
     });
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(dom.window.document.querySelector('video')?.muted).toBe(true);
@@ -98,5 +99,16 @@ test('the landing page hydrates with no server/client mismatch', async () => {
     console.error = origError;
     restore();
   }
-  expect(errors.filter((e) => /hydrat|did not match/i.test(e))).toEqual([]);
+  // Every recoverable error is a server/client mismatch: in development React
+  // names the mismatched nodes, in production it is the minified "#418" — the
+  // string the live site logged. Nothing here may be filtered away, or the
+  // guard goes green on a broken page in a production build.
+  expect(recoverable.map((e) => e.split('\n')[0])).toEqual([]);
+  // Console output carries unrelated noise, but a hydration complaint in it is
+  // still a complaint.
+  expect(
+    consoleErrors.filter((e) =>
+      /hydrat|did not match|minified react error #4/i.test(e)
+    )
+  ).toEqual([]);
 });
