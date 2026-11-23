@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "bun test",
     "lint": "bun x ultracite check",
     "format": "bun x ultracite fix"
   },
@@ -25,6 +26,7 @@
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.23",
+    "jsdom": "^31.0.1",
     "postcss": "^8.5.6",
     "tailwindcss": "3.4.17",
     "typescript": "^5.9.3"
